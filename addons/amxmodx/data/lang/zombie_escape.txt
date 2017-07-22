@@ -1,0 +1,71 @@
+[en]
+NO_ENOUGH_PLAYERS = !tNo Enough Players!y. !tRequired!y: !t%i!y.
+RUN_NOTICE = Ready for Run. Run After %i Second(s) !
+ZOMBIE_RELEASE = Zombie Will Be Released After: %i Second(s) !
+READY_TO_RUN = !tAre you Ready to Run!y? !gGood Luck !y:)
+ESCAPE_SUCCESS = Escape Success!
+ESCAPE_FAIL = Escape Fail!
+START_GAME = Game Commencing!
+INFECTION_NOTICE = %s has infected %s !
+SCORE_MESSAGE = Zombies VS Humans^n %i --------- %i
+NO_WINNER = Escape Draw!
+RANK_INFO = [MASTER OF SURVIVAL]^n[1st] - %s^n[2nd] - %s^n[3rd] - %s
+RANK_INFO_LEADER = [Escape Leader]^n%s
+
+COINS_INFO = !tYour Current Escape Coins!y: !g%i
+ESCAPE_SUCCESS_COINS = !tEscape Success!y: !t+!g%i !tEscape Coins!y!
+HUMAN_INFECTED_COINS = !tInfected Human!y: !t+!g%i !tEscape Coins!y!
+
+ZOMBIE_SPEC_COMMAS = Spectating: %s^nHP: %s^nClass: Zombie^nEscape Coins: %i
+ZOMBIE_SPEC_COMMAS_DHUD = Spectating: %s^nHP: %s^nClass: Zombie^nEscape Coins: %i
+
+HUMAN_SPEC_COMMAS = Spectating: %s^nHP: %s^nClass: Human^nEscape Coins: %i
+HUMAN_SPEC_COMMAS_LEADER = Spectating: %s^nHP: %s^nClass: Escape Leader^nEscape Coins: %i
+HUMAN_SPEC_COMMAS_DHUD = Spectating: %s^nHP: %s^nClass: Human^nEscape Coins: %i
+HUMAN_SPEC_COMMAS_DHUD_LEADER = Spectating: %s^nHP: %s^nClass: Escape Leader^nEscape Coins: %i
+
+ZOMBIE_SPEC = Spectating: %s^nHP: %i^nClass: Zombie^nEscape Coins: %i
+ZOMBIE_SPEC_DHUD = Spectating: %s^nHP: %i^nClass: Zombie^nEscape Coins: %i
+
+HUMAN_SPEC = Spectating: %s^nHP: %i^nClass: Human^nEscape Coins: %i
+HUMAN_SPEC_LEADER = Spectating: %s^nHP: %i^nClass: Escape Leader^nEscape Coins: %i
+HUMAN_SPEC_DHUD = Spectating: %s^nHP: %i^nClass: Human^nEscape Coins: %i
+HUMAN_SPEC_DHUD_LEADER = Spectating: %s^nHP: %i^nClass: Escape Leader^nEscape Coins: %i
+
+ZOMBIE_HUD_COMMAS = HP: %s | Class: Zombie | Escape Coins: %i
+ZOMBIE_HUD_COMMAS_DHUD = HP: %s | Class: Zombie | Escape Coins: %i
+
+ZOMBIE_HUD = HP: %i | Class: Zombie | Escape Coins: %i
+ZOMBIE_DHUD = HP: %i | Class: Zombie | Escape Coins: %i
+
+HUMAN_HUD_COMMAS = HP: %s | Class: Human | Escape Coins: %i
+HUMAN_HUD_COMMAS_LEADER = HP: %s | Class: Escape Leader | Escape Coins: %i
+HUMAN_DHUD_COMMAS = HP: %s | Class: Human | Escape Coins: %i
+HUMAN_DHUD_COMMAS_LEADER = HP: %s | Class: Escape Leader | Escape Coins: %i
+
+HUMAN_HUD = HP: %i | Class: Human | Escape Coins: %i
+HUMAN_HUD_LEADER = HP: %i | Class: Escape Leader | Escape Coins: %i
+HUMAN_DHUD = HP: %i | Class: Human | Escape Coins: %i
+HUMAN_DHUD_LEADER = HP: %i | Class: Escape Leader | Escape Coins: %i
+
+BUY_ENABLED = !tYour menu has been re-enabled!y.
+RE_ENABLE_MENU = !tsay /enable to enable your buy menu!y.
+ALREADY_BOUGHT = !tYou already bought Primary and Secondary Weapons!y!
+DEAD_CANT_BUY_WEAPON = !tYou can't buy when you're dead!y.
+NO_BUY_ZOMBIE = !tYou can't buy when you're Zombie!y.
+BUY_MENU_TIME_EXPIRED = !tBuy menu time has expired!y.
+MENU_PRIMARY_TITLE = Primary Weapons
+MENU_SECONDARY_TITLE = Secondary Weapons
+MENU_AUTOSELECT = Remember?
+SAVE_YES = Yes
+SAVE_NO = No
+NEXT = Next
+BACK = Back
+EXIT = Exit
+
+MAIN_MENU_TITLE = [ZE] Main Menu
+MENU_EXTRABUY = Buy Extra Items
+MENU_WEAPONBUY = Buy Weapons
+
+BUY_EXTRAITEM = Extra Items
+NO_EXTRA_ITEMS = !tNo extra items are currently available to you!y.
