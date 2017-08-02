@@ -38,7 +38,7 @@ new const szAmbianceSound[][] =
 {
 	"zombie_escape/ze_ambiance1.mp3",
 	"zombie_escape/ze_ambiance2.mp3",
-	"zombie_escape/ze_ambiance3.mp3",
+	"zombie_escape/ze_ambiance3.mp3"
 }
 
 new const szEscapeSuccessSound[][] = 
