@@ -73,9 +73,7 @@ public ShowHUD(taskid)
 	{
 		new szName[32]
 		get_user_name(iPlayer, szName, charsmax(szName))
-		
-		if (ID_SHOWHUD == ze_get_escape_leader_id())
-		
+
 		if (get_pcvar_num(Cvar_Hud_Info_Mode) == 1)
 		{
 			if (get_pcvar_num(Cvar_Hud_Info_Comma) == 1)
