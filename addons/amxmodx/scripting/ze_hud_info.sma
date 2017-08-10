@@ -63,7 +63,7 @@ public ShowHUD(taskid)
 	
 	if (!is_user_alive(iPlayer))
 	{
-		iPlayer = pev(iPlayer, pev_iuser2)
+		iPlayer = get_entvar(iPlayer, var_iuser2)
 		
 		if (!is_user_alive(iPlayer))
 			return
