@@ -19,6 +19,9 @@ public plugin_init()
 {
 	register_plugin("[ZE] Nightvision/Lighting", ZE_VERSION, AUTHORS)
 	
+	// Hook Chains
+	RegisterHookChain(RG_CBasePlayer_Killed, "Fw_PlayerKilled_Post", 1)
+	
 	// Commands
 	register_clcmd("nightvision", "Cmd_NvgToggle")
 	
@@ -60,10 +63,10 @@ public ze_user_infected(iVictim, iInfector)
 		PlaySound(iVictim, szNvgSound[1])
 	}
 }
-	
+
 public Cmd_NvgToggle(id)
 {
-	if (is_user_connected(id))
+	if (is_user_alive(id))
 	{
 		if(ze_is_user_zombie(id) && get_pcvar_num(Cvar_Zombie_iNvision) != 0)
 		{
@@ -90,5 +93,15 @@ public Cmd_NvgToggle(id)
 				PlaySound(id, szNvgSound[0])
 			}
 		}
+	}
+}
+
+public Fw_PlayerKilled_Post(id)
+{
+	if (g_bNvgOn[id])
+	{
+		g_bNvgOn[id] = false
+		Set_MapLightStyle(id, g_szLightStyle)
+		Set_NightVision(id, 0, 0, 0x0000, 0, 0, 0, 0)
 	}
 }
