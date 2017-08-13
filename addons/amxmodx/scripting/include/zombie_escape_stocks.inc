@@ -209,7 +209,7 @@ stock UpdateFrags(iAttacker, iVictim, iFrags, iDeaths, iScoreboard)
 	{
 		message_begin(MSG_BROADCAST, get_user_msgid("ScoreInfo"))
 		write_byte(iAttacker) // id
-		write_short(get_entvar(iAttacker, var_frags)) // frags
+		write_short(floatround(get_entvar(iAttacker, var_frags))) // frags
 		write_short(get_member(iAttacker, m_iDeaths)) // deaths
 		write_short(0) // class?
 		write_short(get_member(iAttacker, m_iTeam)) // team
@@ -217,7 +217,7 @@ stock UpdateFrags(iAttacker, iVictim, iFrags, iDeaths, iScoreboard)
 		
 		message_begin(MSG_BROADCAST, get_user_msgid("ScoreInfo"))
 		write_byte(iVictim) // id
-		write_short(get_entvar(iVictim, var_frags)) // frags
+		write_short(floatround(get_entvar(iVictim, var_frags))) // frags
 		write_short(get_member(iVictim, m_iDeaths)) // deaths
 		write_short(0) // class?
 		write_short(get_member(iVictim, m_iTeam)) // team
