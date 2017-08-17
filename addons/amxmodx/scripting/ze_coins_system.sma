@@ -4,7 +4,7 @@
 new const g_szVaultName[] = "Escape_Coins"
 
 // Variables
-new g_iMaxClients, g_iEscapeCoins[33], Float:g_fDamage[33]
+new g_iMaxClients, g_iEscapeCoins[33], Float:g_fDamage[33], g_iVaultHandle
 
 // Cvars
 new Cvar_Escape_Success, Cvar_Human_Infected, Cvar_Damage, Cvar_Damage_Coins, Cvar_Start_Coins, Cvar_Max_Coins,
@@ -38,6 +38,14 @@ public plugin_init()
 	Cvar_Start_Coins = register_cvar("ze_start_coins", "50")
 	Cvar_Max_Coins = register_cvar("ze_max_coins", "200000")
 	Cvar_Earn_ChatNotice = register_cvar("ze_earn_chat_notice", "1")
+	
+	// Open the Vault
+	g_iVaultHandle = nvault_open(g_szVaultName)
+	
+	if (g_iVaultHandle == INVALID_HANDLE)
+	{
+		set_fail_state("Error opening nVault")
+	}
 }
 
 public Coins_Info(id)
@@ -61,6 +69,11 @@ public client_disconnected(id)
 	SaveCoins(id)
 }
 
+public plugin_end()
+{
+	nvault_close(g_iVaultHandle)
+}
+
 public ze_roundend(WinTeam)
 {
 	for(new id = 1; id <= g_iMaxClients; id++)
@@ -73,7 +86,9 @@ public ze_roundend(WinTeam)
 			g_iEscapeCoins[id] += get_pcvar_num(Cvar_Escape_Success)
 			
 			if (get_pcvar_num(Cvar_Earn_ChatNotice) != 0)
+			{
 				ze_colored_print(id, "%L", LANG_PLAYER, "ESCAPE_SUCCESS_COINS", get_pcvar_num(Cvar_Escape_Success))
+			}
 		}
 	}
 }
@@ -86,7 +101,9 @@ public ze_user_infected(iVictim, iInfector)
 	g_iEscapeCoins[iInfector] += get_pcvar_num(Cvar_Human_Infected)
 	
 	if (get_pcvar_num(Cvar_Earn_ChatNotice) != 0)
+	{
 		ze_colored_print(iInfector, "%L", LANG_PLAYER, "HUMAN_INFECTED_COINS", get_pcvar_num(Cvar_Human_Infected))
+	}
 }
 
 public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:fDamage, bitsDamageType)
@@ -127,13 +144,13 @@ LoadCoins(id)
 	new szAuthID[35], iStartValue
 	iStartValue = get_pcvar_num(Cvar_Start_Coins)
 	
-	get_user_authid(id, szAuthID, sizeof(szAuthID) - 1)
+	get_user_authid(id, szAuthID, charsmax(szAuthID))
 	
-	new szData[16]
+	new iCoins = nvault_get(g_iVaultHandle , szAuthID)
 	
-	if(fvault_get_data(g_szVaultName, szAuthID, szData, sizeof(szData) - 1))
+	if(iCoins != 0)
 	{
-		g_iEscapeCoins[id] = str_to_num(szData)
+		g_iEscapeCoins[id] = iCoins
 	}
 	else
 	{
@@ -145,7 +162,7 @@ SaveCoins(id)
 {
 	new szAuthID[35], iMaxValue
 	iMaxValue = get_pcvar_num(Cvar_Max_Coins)
-	get_user_authid(id, szAuthID, sizeof(szAuthID) - 1)
+	get_user_authid(id, szAuthID, charsmax(szAuthID))
 	
 	// Set Him to max if he Higher than Max Value
 	if(g_iEscapeCoins[id] > iMaxValue)
@@ -154,10 +171,10 @@ SaveCoins(id)
 	}
 	
 	new szData[16]
-	num_to_str(g_iEscapeCoins[id], szData, sizeof(szData) - 1)
+	num_to_str(g_iEscapeCoins[id], szData, charsmax(szData))
 	
 	// Save His SteamID, Escape Coins
-	fvault_set_data(g_szVaultName, szAuthID, szData)
+	nvault_set(g_iVaultHandle, szAuthID, szData)
 }
 
 public native_ze_get_escape_coins(id)
