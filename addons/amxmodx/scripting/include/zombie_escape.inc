@@ -3,7 +3,7 @@
 #include <fakemeta>
 #include <hamsandwich>
 #include <engine>
-#include <fvault>
+#include <nvault>
 #include <amxmisc>
 #include <zombie_escape_stocks>
 
