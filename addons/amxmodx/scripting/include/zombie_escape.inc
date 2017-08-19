@@ -2,12 +2,11 @@
 #include <reapi>
 #include <fakemeta>
 #include <hamsandwich>
-#include <engine>
 #include <nvault>
 #include <amxmisc>
 #include <zombie_escape_stocks>
 
-#define ZE_VERSION "1.1"
+#define ZE_VERSION "1.2"
 #define AUTHORS "ZE Dev Team"
 
 
