@@ -85,7 +85,40 @@ stock GetAlivePlayersNum(CsTeams:iTeam)
 	new iTAliveNum
 	for(new i = 1; i <= get_member_game(m_nMaxPlayers) ; i++)
 	{
+		if (!is_user_connected(i))
+			continue
+		
 		if(is_user_alive(i) && get_member(i, m_iTeam) == iTeam)
+			iTAliveNum++
+	}
+	return iTAliveNum
+}
+
+// Return number of connected players from a team
+stock GetTeamPlayersNum(CsTeams:iTeam)
+{
+	new iTAliveNum
+	for(new i = 1; i <= get_member_game(m_nMaxPlayers) ; i++)
+	{
+		if (!is_user_connected(i))
+			continue
+		
+		if(is_user_connected(i) && get_member(i, m_iTeam) == iTeam)
+			iTAliveNum++
+	}
+	return iTAliveNum
+}
+
+// Return number of non-alive players from a team
+stock GetDeadPlayersNum(CsTeams:iTeam)
+{
+	new iTAliveNum
+	for(new i = 1; i <= get_member_game(m_nMaxPlayers) ; i++)
+	{
+		if (!is_user_connected(i))
+			continue
+		
+		if(!is_user_alive(i) && get_member(i, m_iTeam) == iTeam)
 			iTAliveNum++
 	}
 	return iTAliveNum
@@ -224,7 +257,6 @@ stock UpdateFrags(iAttacker, iVictim, iFrags, iDeaths, iScoreboard)
 		message_end()
 	}
 }
-
 
 // Send Death Message
 stock SendDeathMsg(iAttacker, iVictim)

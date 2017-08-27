@@ -25,8 +25,8 @@ enum
 }
 
 // Variables
-new g_iCTNum, g_iTNum, g_iRoundTime, g_iCountDown, g_iReleaseNotice, g_iMaxClients, g_iHumansScore, g_iZombiesScore,
-bool:g_bGameStarted, bool:g_bIsZombie[33], bool:g_bIsZombieFrozen[33], bool:g_bZombieFrozenTime,
+new g_iAliveCTNum, g_iAliveTNum, g_iRoundTime, g_iCountDown, g_iReleaseNotice, g_iMaxClients, g_iHumansScore, g_iZombiesScore,
+bool:g_bGameStarted, bool:g_bIsZombie[33], bool:g_bIsZombieFrozen[33], bool:g_bZombieFrozenTime, bool:g_bIsRoundEnding,
 Float:g_fReferenceTime
 
 // Cvars
@@ -226,6 +226,9 @@ public New_Round()
 		set_task(1.0, "Countdown_Start", TASK_COUNTDOWN, _, _, "b")
 		ze_colored_print(0, "%L", LANG_PLAYER, "READY_TO_RUN")
 		ExecuteForward(g_iForwards[FORWARD_GAME_STARTED], g_iFwReturn)
+		
+		// Round Starting
+		g_bIsRoundEnding = false
 	}
 }
 
@@ -359,7 +362,7 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:damage, Float:direction[3], 
 	if (g_bIsZombieFrozen[iVictim] || g_bIsZombieFrozen[iAttacker])
 		return HC_SUPERCEDE
 	
-	g_iCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
+	g_iAliveCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
 	
 	if (get_member(iAttacker, m_iTeam) == TEAM_TERRORIST)
 	{
@@ -369,7 +372,7 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:damage, Float:direction[3], 
 		Set_User_Zombie(iVictim)
 		ExecuteForward(g_iForwards[FORWARD_INFECTED], g_iFwReturn, iVictim, iAttacker)
 		
-		if (g_iCTNum == 1) // Check if this is Last Human, Because of Delay i can't check if it's 0 instead of 1
+		if (g_iAliveCTNum == 1) // Check if this is Last Human, Because of Delay i can't check if it's 0 instead of 1
 		{
 			// Zombie Win, Leave text blank so we use ours from ML
 			rg_round_end(3.0, WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
@@ -380,6 +383,9 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:damage, Float:direction[3], 
 			// This needed so forward work also to add +1 for Zombies
 			g_iTeam = 1 // ZE_TEAM_ZOMBIE
 			ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
+			
+			// Round is Ending
+			g_bIsRoundEnding = true
 		}
 	}
 	return HC_CONTINUE
@@ -407,20 +413,22 @@ public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:fDamage, bitsDam
 
 public Round_End()
 {
-	g_iTNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
-	g_iCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
+	g_iAliveTNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
+	g_iAliveCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
 	
-	if (g_iTNum == 0 && g_bGameStarted) 
+	if (g_iAliveTNum == 0 && g_bGameStarted) 
 	{
 		g_iTeam = 2 // ZE_TEAM_HUMAN
 		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
 		client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
 		g_iHumansScore ++
+		g_bIsRoundEnding = true
 		return // To block Execute the code blew
 	}
 	
 	g_iTeam = 1 // ZE_TEAM_ZOMBIE
 	g_iZombiesScore ++
+	g_bIsRoundEnding = true
 	ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
 	client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
 }
@@ -442,6 +450,9 @@ public Check_RoundTimeleft()
 		
 		// Show our Message
 		client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
+		
+		// Round is Ending
+		g_bIsRoundEnding = true
 	}
 }
 
@@ -454,8 +465,13 @@ public client_disconnected(id)
 // This check done when player disconnect
 public Check_AlivePlayers()
 {
-	g_iTNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
-	g_iCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
+	g_iAliveTNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
+	g_iAliveCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
+	
+	new iAllTNum = GetTeamPlayersNum(CsTeams:TEAM_TERRORIST),
+	iAllCTNum = GetTeamPlayersNum(CsTeams:TEAM_CT),
+	iDeadTNum = GetDeadPlayersNum(CsTeams:TEAM_TERRORIST),
+	iDeadCTNum = GetDeadPlayersNum(CsTeams:TEAM_CT)
 	
 	// Game Started? (There is at least 2 players Alive?)
 	if (g_bGameStarted)
@@ -464,7 +480,7 @@ public Check_AlivePlayers()
 		if (get_member_game(m_bFreezePeriod))
 		{
 			// Humans alive number = 1 and no zombies?
-			if (g_iCTNum == 1 && g_iTNum == 0)
+			if (g_iAliveCTNum < get_pcvar_num(Cvar_iReqPlayers))
 			{
 				// Game started false again
 				g_bGameStarted = false
@@ -472,8 +488,8 @@ public Check_AlivePlayers()
 		}
 		else // Not freeze time?
 		{
-			// Humans number =1 and no zombies?
-			if (g_iCTNum == 1 && g_iTNum == 0)
+			// Alive humans number = 1 and no zombies at all, And no dead humans?
+			if (g_iAliveCTNum < get_pcvar_num(Cvar_iReqPlayers) && iDeadCTNum == 0 && iAllTNum == 0)
 			{
 				// Game started is false and humans wins (Escape Success)
 				g_bGameStarted = false
@@ -481,17 +497,17 @@ public Check_AlivePlayers()
 				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
 			}
 			
-			// Zombies Number = 1 and no Humans?
-			if (g_iTNum == 1 && g_iCTNum == 0)
+			// Alive zombies number = 1 and no humans at all, And no dead zombies?
+			if (g_iAliveTNum < get_pcvar_num(Cvar_iReqPlayers) && iDeadTNum == 0 && iAllCTNum == 0)
 			{
-				// Game started false and zombies win (Escape Fail)
+				// Game started is false and humans wins (Escape Success)
 				g_bGameStarted = false
-				rg_round_end(3.0, WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
-				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
+				rg_round_end(3.0, WINSTATUS_CTS, ROUND_CTS_WIN, "")
+				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
 			}
 			
 			// Humans number more than 1 and no zombies?
-			if (g_iCTNum > 1 && g_iTNum == 0)
+			if (g_iAliveCTNum > get_pcvar_num(Cvar_iReqPlayers) && g_iAliveTNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape success as there is no Zombies
 				rg_round_end(3.0, WINSTATUS_CTS, ROUND_CTS_WIN, "")
@@ -499,7 +515,7 @@ public Check_AlivePlayers()
 			}
 			
 			// Zombies number more than 1 and no humans?
-			if (g_iTNum > 1 && g_iCTNum == 0)
+			if (g_iAliveTNum > get_pcvar_num(Cvar_iReqPlayers) && g_iAliveCTNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape Fail as there is no humans
 				rg_round_end(3.0, WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
