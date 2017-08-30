@@ -507,7 +507,7 @@ public Check_AlivePlayers()
 			}
 			
 			// Humans number more than 1 and no zombies?
-			if (g_iAliveCTNum > get_pcvar_num(Cvar_iReqPlayers) && g_iAliveTNum == 0 && !g_bIsRoundEnding)
+			if (g_iAliveCTNum >= get_pcvar_num(Cvar_iReqPlayers) && g_iAliveTNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape success as there is no Zombies
 				rg_round_end(3.0, WINSTATUS_CTS, ROUND_CTS_WIN, "")
@@ -515,7 +515,7 @@ public Check_AlivePlayers()
 			}
 			
 			// Zombies number more than 1 and no humans?
-			if (g_iAliveTNum > get_pcvar_num(Cvar_iReqPlayers) && g_iAliveCTNum == 0 && !g_bIsRoundEnding)
+			if (g_iAliveTNum >= get_pcvar_num(Cvar_iReqPlayers) && g_iAliveCTNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape Fail as there is no humans
 				rg_round_end(3.0, WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
