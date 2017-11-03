@@ -170,11 +170,15 @@ SaveCoins(id)
 		g_iEscapeCoins[id] = iMaxValue
 	}
 	
-	new szData[16]
-	num_to_str(g_iEscapeCoins[id], szData, charsmax(szData))
-	
-	// Save His SteamID, Escape Coins
-	nvault_set(g_iVaultHandle, szAuthID, szData)
+	// Temporary solution to prevent saving if coins for player turned to 0
+	if (g_iEscapeCoins[id] > 0)
+	{
+		new szData[16]
+		num_to_str(g_iEscapeCoins[id], szData, charsmax(szData))
+		
+		// Save His SteamID, Escape Coins
+		nvault_set(g_iVaultHandle, szAuthID, szData)
+	}
 }
 
 public native_ze_get_escape_coins(id)
