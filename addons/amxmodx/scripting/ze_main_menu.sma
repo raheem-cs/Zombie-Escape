@@ -19,7 +19,7 @@ public plugin_init()
 
 public Cmd_ChooseTeam(id)
 {
-	if (get_member(id, m_iTeam) != TEAM_SPECTATOR)
+	if (get_member(id, m_iTeam) == TEAM_TERRORIST || get_member(id, m_iTeam) == TEAM_CT)
 	{
 		Show_Menu_Main(id)
 		return PLUGIN_HANDLED // Kill the Choose Team Command
