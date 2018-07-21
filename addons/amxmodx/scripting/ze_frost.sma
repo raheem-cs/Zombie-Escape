@@ -30,6 +30,7 @@ new const szFrostGrenadeBreakSound[][] =
 // Default Models
 new g_v_szFrostGrenadeModel[MODEL_MAX_LENGTH] = "models/zombie_escape/v_grenade_frost.mdl"
 new g_p_szFrostGrenadeModel[MODEL_MAX_LENGTH] = "models/zombie_escape/p_grenade_frost.mdl"
+new g_w_szFrostGrenadeModel[MODEL_MAX_LENGTH] = "models/zombie_escape/w_grenade_frost.mdl"
 
 // Default Sprites
 new g_szGrenadeTrailSprite[SPRITE_MAX_LENGTH] = "sprites/laserbeam.spr"
@@ -52,14 +53,25 @@ new g_iForwards[TOTAL_FORWARDS]
 new g_iForwardReturn
 
 // Variables
-new bool:g_bIsFrozen[33], bool:g_bZombieReleased
-new g_iFrozenRenderingFx[33], Float:g_fFrozenRenderingColor[33][3], g_iFrozenRenderingRender[33], Float:g_fFrozenRenderingAmount[33]
+new bool:g_bIsFrozen[33],
+	bool:g_bZombieReleased,
+	g_iFrozenRenderingFx[33],
+	Float:g_fFrozenRenderingColor[33][3],
+	g_iFrozenRenderingRender[33],
+	Float:g_fFrozenRenderingAmount[33],
+	g_iMaxClients
 
 // Sprites
-new g_iTrailSpr, g_iExplodeSpr, g_iGlassSpr
+new g_iTrailSpr,
+	g_iExplodeSpr,
+	g_iGlassSpr
 
 // Cvar
-new Cvar_Frost_Duration, Cvar_Frost_Hud_Icon, Cvar_Frozen_Damage, Cvar_Frost_Radius
+new g_pCvarFrostDuration, 
+	g_pCvarFrostHudIcon,
+	g_pCvarFrozenDamage,
+	g_pCvarFrostRadius,
+	g_pCvarHitType
 
 public plugin_init()
 {
@@ -84,10 +96,14 @@ public plugin_init()
 	g_iForwards[FW_USER_UNFROZEN] = CreateMultiForward("ze_frost_unfreeze", ET_IGNORE, FP_CELL)
 	
 	// Cvars
-	Cvar_Frost_Duration = register_cvar("ze_frost_duration", "3")
-	Cvar_Frost_Hud_Icon = register_cvar("ze_frost_hud_icon", "1")
-	Cvar_Frozen_Damage = register_cvar("ze_freeze_damage", "0")
-	Cvar_Frost_Radius = register_cvar("ze_freeze_radius", "240.0")
+	g_pCvarFrostDuration = register_cvar("ze_frost_duration", "3")
+	g_pCvarFrostHudIcon = register_cvar("ze_frost_hud_icon", "1")
+	g_pCvarFrozenDamage = register_cvar("ze_freeze_damage", "0")
+	g_pCvarFrostRadius = register_cvar("ze_freeze_radius", "240.0")
+	g_pCvarHitType = register_cvar("ze_freeze_hit_type", "0")
+	
+	// Static Values
+	g_iMaxClients = get_member_game(m_nMaxPlayers)
 }
 
 public plugin_natives()
@@ -100,8 +116,7 @@ public native_ze_zombie_in_forst(id)
 {
 	if (!is_user_alive(id))
 	{
-		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player (%d)", id)
-		return false
+		return -1
 	}
 	
 	return g_bIsFrozen[id]
@@ -112,7 +127,7 @@ public native_ze_set_frost_grenade(id, set)
 	if (!is_user_alive(id))
 	{
 		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player (%d)", id)
-		return false
+		return -1;
 	}
 	
 	// Unfreeze
@@ -179,6 +194,8 @@ public plugin_precache()
 		amx_save_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "V_GRENADE FROST", g_v_szFrostGrenadeModel)
 	if (!amx_load_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "P_GRENADE FROST", g_p_szFrostGrenadeModel, charsmax(g_p_szFrostGrenadeModel)))
 		amx_save_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "P_GRENADE FROST", g_p_szFrostGrenadeModel)
+	if (!amx_load_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "W_GRENADE FROST", g_w_szFrostGrenadeModel, charsmax(g_w_szFrostGrenadeModel)))
+		amx_save_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "W_GRENADE FROST", g_w_szFrostGrenadeModel)
 	if (!amx_load_setting_string(ZE_SETTING_RESOURCES, "Grenade Sprites", "TRAIL", g_szGrenadeTrailSprite, charsmax(g_szGrenadeTrailSprite)))
 		amx_save_setting_string(ZE_SETTING_RESOURCES, "Grenade Sprites", "TRAIL", g_szGrenadeTrailSprite)
 	if (!amx_load_setting_string(ZE_SETTING_RESOURCES, "Grenade Sprites", "RING", g_szGrenadeRingSprite, charsmax(g_szGrenadeRingSprite)))
@@ -209,6 +226,7 @@ public plugin_precache()
 	// Precache models
 	precache_model(g_v_szFrostGrenadeModel)
 	precache_model(g_p_szFrostGrenadeModel)
+	precache_model(g_w_szFrostGrenadeModel)
 	
 	// Precache sprites
 	g_iTrailSpr = precache_model(g_szGrenadeTrailSprite)
@@ -265,7 +283,7 @@ public New_Round()
 public Fw_TraceAttack_Pre(iVictim, iAttacker)
 {
 	// Block damage while frozen
-	if ((get_pcvar_num(Cvar_Frozen_Damage) == 0) && g_bIsFrozen[iVictim])
+	if ((get_pcvar_num(g_pCvarFrozenDamage) == 0) && g_bIsFrozen[iVictim])
 		return HC_SUPERCEDE
 	
 	return HC_CONTINUE
@@ -291,11 +309,7 @@ public Fw_SetModel_Post(entity, const model[])
 {
 	// We don't care
 	if (strlen(model) < 8)
-		return
-	
-	// Narrow down our matches a bit
-	if (model[7] != 'w' || model[8] != '_')
-		return
+		return FMRES_IGNORED
 	
 	// Get damage time of grenade
 	static Float:dmgtime
@@ -303,11 +317,11 @@ public Fw_SetModel_Post(entity, const model[])
 	
 	// Grenade not yet thrown
 	if (dmgtime == 0.0)
-		return
+		return FMRES_IGNORED
 	
 	// Grenade's owner is zombie?
 	if (ze_is_user_zombie(get_entvar(entity, var_owner)))
-		return
+		return FMRES_IGNORED
 
 	// Flashbang or Smoke
 	if ((model[9] == 'f' && model[10] == 'l') || (model[9] == 's' && model[10] == 'm'))
@@ -331,6 +345,15 @@ public Fw_SetModel_Post(entity, const model[])
 		// Set grenade type on the thrown grenade entity
 		set_entvar(entity, var_flTimeStepSound, 3333.0)
 	}
+	
+	// Set w_ model
+	if (equali(model, "models/w_flashbang.mdl") || equali(model, "models/w_smokegrenade.mdl"))
+	{
+		engfunc(EngFunc_SetModel, entity, g_w_szFrostGrenadeModel)
+		return FMRES_SUPERCEDE
+	}
+	
+	return FMRES_IGNORED
 }
 
 public Fw_ThinkGrenade_Post(entity)
@@ -375,15 +398,51 @@ frost_explode(ent)
 	emit_sound(ent, CHAN_WEAPON, sound, 1.0, ATTN_NORM, 0, PITCH_NORM)
 	
 	// Collisions
-	new victim = -1
-	
-	while ((victim = engfunc(EngFunc_FindEntityInSphere, victim, origin, get_pcvar_float(Cvar_Frost_Radius))) != 0)
+	if (!get_pcvar_num(g_pCvarHitType))
 	{
-		// Only effect alive zombies, If player not released yet don't freeze him
-		if (!is_user_alive(victim) || !ze_is_user_zombie(victim) || !g_bZombieReleased)
-			continue
+		new victim = -1
 		
-		set_freeze(victim)
+		while ((victim = engfunc(EngFunc_FindEntityInSphere, victim, origin, get_pcvar_float(g_pCvarFrostRadius))) != 0)
+		{
+			// Only effect alive zombies, If player not released yet don't freeze him
+			if (!is_user_alive(victim) || !ze_is_user_zombie(victim) || !g_bZombieReleased)
+				continue
+			
+			set_freeze(victim)
+		}
+	}
+	else
+	{
+		new Float:flNadeOrigin[3], Float:flVictimOrigin[3], Float:flDistance, tr = create_tr2(), Float:flFraction
+		get_entvar(ent, var_origin, flNadeOrigin)
+		
+		for(new iVictim = 1; iVictim <= g_iMaxClients; iVictim++)
+		{
+			if (!is_user_alive(iVictim) || !ze_is_user_zombie(iVictim) || !g_bZombieReleased)
+				continue
+			
+			get_entvar(iVictim, var_origin, flVictimOrigin)
+			
+			// Get distance between nade and player
+			flDistance = vector_distance(flNadeOrigin, flVictimOrigin)
+			
+			if(flDistance > get_pcvar_float(g_pCvarFrostRadius))
+				continue
+			
+			flNadeOrigin[2] += 2.0;
+			engfunc(EngFunc_TraceLine, flNadeOrigin, flVictimOrigin, DONT_IGNORE_MONSTERS, ent, tr);
+			flNadeOrigin[2] -= 2.0;
+			
+			get_tr2(tr, TR_flFraction, flFraction);
+			
+			if(flFraction != 1.0 && get_tr2(tr, TR_pHit) != iVictim)
+				continue;
+			
+			set_freeze(iVictim)
+		}
+		
+		// Free the trace handler
+		free_tr2(tr);
 	}
 	
 	// Get rid of the grenade
@@ -433,7 +492,7 @@ set_freeze(victim)
 	}
 	
 	// Freeze icon?
-	if (get_pcvar_num(Cvar_Frost_Hud_Icon))
+	if (get_pcvar_num(g_pCvarFrostHudIcon))
 	{
 		message_begin(MSG_ONE_UNRELIABLE, get_user_msgid("Damage"), _, victim)
 		write_byte(0) // damage save
@@ -468,7 +527,7 @@ set_freeze(victim)
 	ApplyFrozenRendering(victim)
 	
 	// Set a task to remove the freeze
-	set_task(get_pcvar_float(Cvar_Frost_Duration), "RemoveFreeze", victim+TASK_FROST_REMOVE)
+	set_task(get_pcvar_float(g_pCvarFrostDuration), "RemoveFreeze", victim+TASK_FROST_REMOVE)
 	return true
 }
 
@@ -504,8 +563,12 @@ public RemoveFreeze(taskid)
 	g_bIsFrozen[ID_FROST_REMOVE] = false
 	
 	// Restore rendering
-	Set_Rendering_Float(ID_FROST_REMOVE, g_iFrozenRenderingFx[ID_FROST_REMOVE], g_fFrozenRenderingColor[ID_FROST_REMOVE], g_iFrozenRenderingRender[ID_FROST_REMOVE], g_fFrozenRenderingAmount[ID_FROST_REMOVE])
-	
+	new iRed = floatround(g_fFrozenRenderingColor[ID_FROST_REMOVE][0]),
+	iGreen = floatround(g_fFrozenRenderingColor[ID_FROST_REMOVE][1]),
+	iBlue = floatround(g_fFrozenRenderingColor[ID_FROST_REMOVE][2])
+
+	Set_Rendering(ID_FROST_REMOVE, g_iFrozenRenderingFx[ID_FROST_REMOVE], iRed, iGreen, iBlue, g_iFrozenRenderingRender[ID_FROST_REMOVE], floatround(g_fFrozenRenderingAmount[ID_FROST_REMOVE]))
+
 	// Gradually remove screen's blue tint
 	message_begin(MSG_ONE, get_user_msgid("ScreenFade"), _, ID_FROST_REMOVE)
 	write_short((1<<12)) // duration

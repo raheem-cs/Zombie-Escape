@@ -11,13 +11,28 @@ enum
 	RANK_THIRD
 }
 
+// Colors
+enum
+{
+	Red = 0,
+	Green,
+	Blue
+}
+
 // Variables
-new g_iMaxClients, g_iSpeedRank, g_iEscapePoints[33], g_iEscapeRank[4]
+new g_iMaxClients,
+	g_iSpeedRank,
+	g_iEscapePoints[33],
+	g_iEscapeRank[4]
 
 // Cvars
-new Cvar_iInfectNotice, Cvar_InfectNotice_iRed, Cvar_InfectNotice_iGreen, Cvar_InfectNotice_iBlue,
-Cvar_Rank_iMode, Cvar_Rank_iRed, Cvar_Rank_iGreen, Cvar_Rank_iBlue, Cvar_LeaderMode_iGlow,
-Cvar_LeaderMode_iRed, Cvar_LeaderMode_iGreen, Cvar_LeaderMode_iBlue, Cvar_LeaderMode_Random
+new g_pCvarInfectNotice, 
+	g_pCvarInfectColors[3],
+	g_pCvarMode,
+	g_pCvarRankColors[3],
+	g_pCvarLeaderGlow,
+	g_pCvarLeaderGlowColors[3],
+	g_pCvarLeaderGlowRandom
 
 public plugin_init()
 {
@@ -27,19 +42,19 @@ public plugin_init()
 	RegisterHookChain(RG_CBasePlayer_Spawn, "Fw_PlayerSpawn_Post", 1)
 	
 	// Cvars
-	Cvar_iInfectNotice = register_cvar("ze_enable_infect_notice", "1")
-	Cvar_InfectNotice_iRed = register_cvar("ze_infect_notice_red", "255")
-	Cvar_InfectNotice_iGreen = register_cvar("ze_infect_notice_green", "0")
-	Cvar_InfectNotice_iBlue = register_cvar("ze_infect_notice_blue", "0")
-	Cvar_Rank_iMode = register_cvar("ze_speed_rank_mode", "1")
-	Cvar_Rank_iRed = register_cvar("ze_speed_rank_red", "0")
-	Cvar_Rank_iGreen = register_cvar("ze_speed_rank_green", "255")
-	Cvar_Rank_iBlue = register_cvar("ze_speed_rank_blue", "0")
-	Cvar_LeaderMode_iGlow = register_cvar("ze_leader_glow", "1")
-	Cvar_LeaderMode_iRed = register_cvar("ze_leader_glow_red", "255")
-	Cvar_LeaderMode_iGreen = register_cvar("ze_leader_glow_green", "0")
-	Cvar_LeaderMode_iBlue = register_cvar("ze_leader_glow_blue", "0")
-	Cvar_LeaderMode_Random = register_cvar("ze_leader_random_color", "1")
+	g_pCvarInfectNotice = register_cvar("ze_enable_infect_notice", "1")
+	g_pCvarInfectColors[Red] = register_cvar("ze_infect_notice_red", "255")
+	g_pCvarInfectColors[Green] = register_cvar("ze_infect_notice_green", "0")
+	g_pCvarInfectColors[Blue] = register_cvar("ze_infect_notice_blue", "0")
+	g_pCvarMode = register_cvar("ze_speed_rank_mode", "1")
+	g_pCvarRankColors[Red] = register_cvar("ze_speed_rank_red", "0")
+	g_pCvarRankColors[Green] = register_cvar("ze_speed_rank_green", "255")
+	g_pCvarRankColors[Blue] = register_cvar("ze_speed_rank_blue", "0")
+	g_pCvarLeaderGlow = register_cvar("ze_leader_glow", "1")
+	g_pCvarLeaderGlowColors[Red] = register_cvar("ze_leader_glow_red", "255")
+	g_pCvarLeaderGlowColors[Green] = register_cvar("ze_leader_glow_green", "0")
+	g_pCvarLeaderGlowColors[Blue] = register_cvar("ze_leader_glow_blue", "0")
+	g_pCvarLeaderGlowRandom = register_cvar("ze_leader_random_color", "1")
 	
 	// Messages
 	g_iSpeedRank = CreateHudSyncObj()
@@ -58,7 +73,7 @@ public plugin_natives()
 
 public ze_user_infected(iVictim, iInfector)
 {
-	if (get_pcvar_num(Cvar_iInfectNotice) != 0)
+	if (get_pcvar_num(g_pCvarInfectNotice) != 0)
 	{
 		if (iInfector == 0) // Server ID
 			return
@@ -66,7 +81,7 @@ public ze_user_infected(iVictim, iInfector)
 		static szVictimName[32], szAttackerName[32]
 		get_user_name(iVictim, szVictimName, charsmax(szVictimName))
 		get_user_name(iInfector, szAttackerName, charsmax(szAttackerName))
-		set_hudmessage(get_pcvar_num(Cvar_InfectNotice_iRed), get_pcvar_num(Cvar_InfectNotice_iGreen), get_pcvar_num(Cvar_InfectNotice_iBlue), 0.05, 0.45, 1, 0.0, 6.0, 0.0, 0.0)
+		set_hudmessage(get_pcvar_num(g_pCvarInfectColors[Red]), get_pcvar_num(g_pCvarInfectColors[Green]), get_pcvar_num(g_pCvarInfectColors[Blue]), 0.05, 0.45, 1, 0.0, 6.0, 0.0, 0.0)
 		show_hudmessage(0, "%L", LANG_PLAYER, "INFECTION_NOTICE", szAttackerName, szVictimName)
 	}
 }
@@ -99,7 +114,7 @@ public Show_Message()
 			}
 		}
 	
-		if (get_pcvar_num(Cvar_LeaderMode_iGlow) != 0)
+		if (get_pcvar_num(g_pCvarLeaderGlow) != 0)
 		{
 			// Set Glow For Escape Leader
 			for (new i = 1; i <= g_iMaxClients; i++)
@@ -109,9 +124,9 @@ public Show_Message()
 			
 				if (g_iEscapeRank[RANK_FIRST] == i) // The Leader id
 				{
-					if (get_pcvar_num(Cvar_LeaderMode_Random) == 0)
+					if (get_pcvar_num(g_pCvarLeaderGlowRandom) == 0)
 					{
-						Set_Rendering(i, kRenderFxGlowShell, get_pcvar_num(Cvar_LeaderMode_iRed), get_pcvar_num(Cvar_LeaderMode_iGreen), get_pcvar_num(Cvar_LeaderMode_iBlue), kRenderNormal, 40)
+						Set_Rendering(i, kRenderFxGlowShell, get_pcvar_num(g_pCvarLeaderGlowColors[Red]), get_pcvar_num(g_pCvarLeaderGlowColors[Green]), get_pcvar_num(g_pCvarLeaderGlowColors[Blue]), kRenderNormal, 40)
 					}
 					else
 					{
@@ -137,10 +152,10 @@ public Fw_PlayerSpawn_Post(id)
 
 public Show_Speed_Message(id)
 {
-	if (get_pcvar_num(Cvar_Rank_iMode) == 0 || get_member_game(m_bFreezePeriod) == true) // Disabled
+	if (get_pcvar_num(g_pCvarMode) == 0 || get_member_game(m_bFreezePeriod) == true) // Disabled
 		return
 	
-	if (get_pcvar_num(Cvar_Rank_iMode) == 1) // Leader Mode
+	if (get_pcvar_num(g_pCvarMode) == 1) // Leader Mode
 	{
 		Speed_Stats()
 		new iLeaderID; iLeaderID = g_iEscapeRank[RANK_FIRST]
@@ -150,17 +165,17 @@ public Show_Speed_Message(id)
 			new szLeader[32]
 			get_user_name(iLeaderID, szLeader, charsmax(szLeader))
 			
-			set_hudmessage(get_pcvar_num(Cvar_Rank_iRed), get_pcvar_num(Cvar_Rank_iGreen), get_pcvar_num(Cvar_Rank_iBlue), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
+			set_hudmessage(get_pcvar_num(g_pCvarRankColors[Red]), get_pcvar_num(g_pCvarRankColors[Green]), get_pcvar_num(g_pCvarRankColors[Blue]), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
 			ShowSyncHudMsg(id, g_iSpeedRank, "%L", LANG_PLAYER, "RANK_INFO_LEADER", szLeader)
 		}
 		else
 		{
-			set_hudmessage(get_pcvar_num(Cvar_Rank_iRed), get_pcvar_num(Cvar_Rank_iGreen), get_pcvar_num(Cvar_Rank_iBlue), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
+			set_hudmessage(get_pcvar_num(g_pCvarRankColors[Red]), get_pcvar_num(g_pCvarRankColors[Green]), get_pcvar_num(g_pCvarRankColors[Blue]), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
 			ShowSyncHudMsg(id, g_iSpeedRank, "%L", LANG_PLAYER, "RANK_INFO_LEADER", szNone)
 		}
 	}
 	
-	if (get_pcvar_num(Cvar_Rank_iMode) == 2) // Rank Mode
+	if (get_pcvar_num(g_pCvarMode) == 2) // Rank Mode
 	{
 		Speed_Stats()
 		
@@ -198,7 +213,7 @@ public Show_Speed_Message(id)
 			szThird = szNone
 		}
 		
-		set_hudmessage(get_pcvar_num(Cvar_Rank_iRed), get_pcvar_num(Cvar_Rank_iGreen), get_pcvar_num(Cvar_Rank_iBlue), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
+		set_hudmessage(get_pcvar_num(g_pCvarRankColors[Red]), get_pcvar_num(g_pCvarRankColors[Green]), get_pcvar_num(g_pCvarRankColors[Blue]), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
 		ShowSyncHudMsg(id, g_iSpeedRank, "%L", LANG_PLAYER, "RANK_INFO", szFirst, szSecond, szThird)
 	}
 }

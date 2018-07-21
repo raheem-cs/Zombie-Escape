@@ -6,6 +6,7 @@ enum _:TOTAL_FORWARDS
 	FORWARD_NONE = 0,
 	FORWARD_ROUNDEND,
 	FORWARD_HUMANIZED,
+	FORWARD_PRE_INFECTED,
 	FORWARD_INFECTED,
 	FORWARD_ZOMBIE_APPEAR,
 	FORWARD_ZOMBIE_RELEASE,
@@ -24,21 +25,70 @@ enum
 	ROUND_TIME_LEFT
 }
 
+// Colors (g_pCvarColors[] array indexes)
+enum
+{
+	Red = 0,
+	Green,
+	Blue
+}
+
 // Variables
-new g_iAliveCTNum, g_iAliveTNum, g_iRoundTime, g_iCountDown, g_iReleaseNotice, g_iMaxClients, g_iHumansScore, g_iZombiesScore,
-bool:g_bGameStarted, bool:g_bIsZombie[33], bool:g_bIsZombieFrozen[33], bool:g_bZombieFrozenTime, bool:g_bIsRoundEnding,
-Float:g_fReferenceTime
+new g_iAliveHumansNum, 
+	g_iAliveZombiesNum, 
+	g_iRoundTime, 
+	g_iCountDown, 
+	g_iReleaseNotice, 
+	g_iMaxClients, 
+	g_iHumansScore, 
+	g_iZombiesScore, 
+	g_iRoundNum,
+	g_iHSpeedFactor[33],
+	g_iZSpeedSet[33],
+	bool:g_bGameStarted, 
+	bool:g_bIsZombie[33], 
+	bool:g_bIsZombieFrozen[33], 
+	bool:g_bZombieFreezeTime, 
+	bool:g_bIsRoundEnding,
+	bool:g_bHSpeedUsed[33], 
+	bool:g_bZSpeedUsed[33],
+	bool:g_bEndCalled,
+	Float:g_flReferenceTime
 
 // Cvars
-new Cvar_Human_fSpeedFactor, Cvar_Human_fGravity, Cvar_Human_iHealth, Cvar_Zombie_fSpeed, Cvar_Zombie_fGravity,
-Cvar_Zombie_iReleaseTime, Cvar_iFreezeTime, Cvar_fRoundTime, Cvar_iReqPlayers, Cvar_Zombie_iHealth, Cvar_FirstZombies_iHealth,
-Cvar_Zombie_fKnockback, Cvar_ScoreMessage_iType, Cvar_ScoreMessage_iRed, Cvar_ScoreMessage_iGreen, Cvar_ScoreMessage_iBlue
+new	g_pCvarHumanSpeedFactor, 
+	g_pCvarHumanGravity, 
+	g_pCvarHumanHealth, 
+	g_pCvarZombieSpeed, 
+	g_pCvarZombieGravity,
+	g_pCvarZombieReleaseTime, 
+	g_pCvarFreezeTime, 
+	g_pCvarRoundTime, 
+	g_pCvarReqPlayers, 
+	g_pCvarZombieHealth, 
+	g_pCvarFirstZombiesHealth,
+	g_pCvarZombieKnockback, 
+	g_pCvarScoreMessageType, 
+	g_pCvarColors[3],
+	g_pCvarRoundEndDelay
 
 public plugin_natives()
 {
 	register_native("ze_is_user_zombie", "native_ze_is_user_zombie", 1)
+	register_native("ze_is_game_started", "native_ze_is_game_started", 1)
+	register_native("ze_is_zombie_frozen", "native_ze_is_zombie_frozen", 1)
+	
+	register_native("ze_get_round_number", "native_ze_get_round_number", 1)
+	register_native("ze_get_humans_number", "native_ze_get_humans_number", 1)
+	register_native("ze_get_zombies_number", "native_ze_get_zombies_number", 1)
+	
 	register_native("ze_set_user_zombie", "native_ze_set_user_zombie", 1)
 	register_native("ze_set_user_human", "native_ze_set_user_human", 1)
+	register_native("ze_set_human_speed_factor", "native_ze_set_human_speed_factor", 1)
+	register_native("ze_set_zombie_speed", "native_ze_set_zombie_speed", 1)
+	
+	register_native("ze_reset_human_speed", "native_ze_reset_human_speed", 1)
+	register_native("ze_reset_zombie_speed", "native_ze_reset_zombie_speed", 1)
 }
 
 public plugin_init()
@@ -51,6 +101,7 @@ public plugin_init()
 	RegisterHookChain(RG_CBasePlayer_Spawn, "Fw_PlayerSpawn_Post", 1)
 	RegisterHookChain(RG_CSGameRules_CheckWinConditions, "Fw_CheckMapConditions_Post", 1)
 	RegisterHookChain(RG_CBasePlayer_Killed, "Fw_PlayerKilled_Post", 1)
+	RegisterHookChain(RG_RoundEnd, "Event_RoundEnd_Pre", 0)
 	
 	// Events
 	register_event("HLTV", "New_Round", "a", "1=0", "2=0")
@@ -64,6 +115,7 @@ public plugin_init()
 	// Create Forwards (All Return Values Ignored)
 	g_iForwards[FORWARD_ROUNDEND] = CreateMultiForward("ze_roundend", ET_IGNORE, FP_CELL)
 	g_iForwards[FORWARD_HUMANIZED] = CreateMultiForward("ze_user_humanized", ET_IGNORE, FP_CELL)
+	g_iForwards[FORWARD_PRE_INFECTED] = CreateMultiForward("ze_user_infected_pre", ET_CONTINUE, FP_CELL, FP_CELL)
 	g_iForwards[FORWARD_INFECTED] = CreateMultiForward("ze_user_infected", ET_IGNORE, FP_CELL, FP_CELL)
 	g_iForwards[FORWARD_ZOMBIE_APPEAR] = CreateMultiForward("ze_zombie_appear", ET_IGNORE)
 	g_iForwards[FORWARD_ZOMBIE_RELEASE] = CreateMultiForward("ze_zombie_release", ET_IGNORE)
@@ -76,26 +128,27 @@ public plugin_init()
 	register_dictionary("zombie_escape.txt")
 	
 	// Humans Cvars
-	Cvar_Human_fSpeedFactor = register_cvar("ze_human_speed_factor", "20.0")
-	Cvar_Human_fGravity = register_cvar("ze_human_gravity", "800")
-	Cvar_Human_iHealth = register_cvar("ze_human_health", "1000")
+	g_pCvarHumanSpeedFactor = register_cvar("ze_human_speed_factor", "20.0")
+	g_pCvarHumanGravity = register_cvar("ze_human_gravity", "800")
+	g_pCvarHumanHealth = register_cvar("ze_human_health", "1000")
 	
 	// Zombie Cvars
-	Cvar_Zombie_fSpeed = register_cvar("ze_zombie_speed", "350.0")
-	Cvar_Zombie_fGravity = register_cvar("ze_zombie_gravity", "640")
-	Cvar_Zombie_iHealth = register_cvar("ze_zombie_health", "10000")
-	Cvar_FirstZombies_iHealth = register_cvar("ze_first_zombies_health", "20000")
-	Cvar_Zombie_fKnockback = register_cvar("ze_zombie_knockback", "300.0")
+	g_pCvarZombieSpeed = register_cvar("ze_zombie_speed", "350.0")
+	g_pCvarZombieGravity = register_cvar("ze_zombie_gravity", "640")
+	g_pCvarZombieHealth = register_cvar("ze_zombie_health", "10000")
+	g_pCvarFirstZombiesHealth = register_cvar("ze_first_zombies_health", "20000")
+	g_pCvarZombieKnockback = register_cvar("ze_zombie_knockback", "300.0")
 	
 	// General Cvars
-	Cvar_Zombie_iReleaseTime = register_cvar("ze_release_time", "15")
-	Cvar_iFreezeTime = register_cvar("ze_freeze_time", "20")
-	Cvar_fRoundTime = register_cvar("ze_round_time", "9.0")
-	Cvar_iReqPlayers = register_cvar("ze_required_players", "2")
-	Cvar_ScoreMessage_iType = register_cvar("ze_score_message_type", "1")
-	Cvar_ScoreMessage_iRed = register_cvar("ze_score_message_red", "200")
-	Cvar_ScoreMessage_iGreen = register_cvar("ze_score_message_green", "100")
-	Cvar_ScoreMessage_iBlue = register_cvar("ze_score_message_blue", "0")
+	g_pCvarZombieReleaseTime = register_cvar("ze_release_time", "15")
+	g_pCvarFreezeTime = register_cvar("ze_freeze_time", "20")
+	g_pCvarRoundTime = register_cvar("ze_round_time", "9.0")
+	g_pCvarReqPlayers = register_cvar("ze_required_players", "2")
+	g_pCvarScoreMessageType = register_cvar("ze_score_message_type", "1")
+	g_pCvarColors[Red] = register_cvar("ze_score_message_red", "200")
+	g_pCvarColors[Green] = register_cvar("ze_score_message_green", "100")
+	g_pCvarColors[Blue] = register_cvar("ze_score_message_blue", "0")
+	g_pCvarRoundEndDelay = register_cvar("ze_round_end_delay", "5")
 	
 	// Default Values
 	g_bGameStarted = false
@@ -130,18 +183,18 @@ public Fw_CheckMapConditions_Post()
 	set_member_game(m_bGameStarted, true)
 	
 	// Set Freeze Time
-	set_member_game(m_iIntroRoundTime, get_pcvar_num(Cvar_iFreezeTime))
+	set_member_game(m_iIntroRoundTime, get_pcvar_num(g_pCvarFreezeTime))
 	
 	// Set Round Time
-	set_member_game(m_iRoundTime, floatround(get_pcvar_float(Cvar_fRoundTime) * 60.0))
+	set_member_game(m_iRoundTime, floatround(get_pcvar_float(g_pCvarRoundTime) * 60.0))
 }
 
 public Fw_PlayerKilled_Post(id)
 {
-	new iCTNum; iCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
-	new iTNum; iTNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
+	g_iAliveHumansNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
+	g_iAliveZombiesNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
 	
-	if (iCTNum == 0 && iTNum == 0)
+	if (g_iAliveHumansNum == 0 && g_iAliveZombiesNum == 0)
 	{
 		// No Winner, All Players in one team killed Or Both teams Killed
 		client_print(0, print_center, "%L", LANG_PLAYER, "NO_WINNER")
@@ -152,16 +205,24 @@ public Fw_RestMaxSpeed_Post(id)
 {
 	if (!g_bIsZombie[id])
 	{
-		static Float:fMaxSpeed
-		get_entvar(id, var_maxspeed, fMaxSpeed)
+		static Float:flMaxSpeed
+		get_entvar(id, var_maxspeed, flMaxSpeed)
 		
-		if(fMaxSpeed != 1.0 && is_user_alive(id))
+		if (flMaxSpeed != 1.0 && is_user_alive(id))
 		{
-			// Set Human Speed Factor
-			set_entvar(id, var_maxspeed, fMaxSpeed + get_pcvar_float(Cvar_Human_fSpeedFactor))
+			if (g_bHSpeedUsed[id])
+			{
+				// Set New Human Speed Factor
+				set_entvar(id, var_maxspeed, flMaxSpeed + float(g_iHSpeedFactor[id]))
+				return HAM_IGNORED
+			}
+				
+			// Set Human Speed Factor, native not used
+			set_entvar(id, var_maxspeed, flMaxSpeed + get_pcvar_float(g_pCvarHumanSpeedFactor))
 			return HAM_IGNORED
 		}
 	}
+	
 	return HAM_SUPERCEDE
 }
 
@@ -182,7 +243,7 @@ public Fw_PlayerSpawn_Post(id)
 		}
 		else
 		{
-			if (g_bZombieFrozenTime)
+			if (g_bZombieFreezeTime)
 			{
 				// Zombie Chosen and zombies Frozen, Spawn him as zombie and Freeze Him
 				Set_User_Zombie(id)
@@ -216,37 +277,41 @@ public New_Round()
 	if (!g_bGameStarted)
 	{
 		// No Enough Players
-		ze_colored_print(0, "%L", LANG_PLAYER, "NO_ENOUGH_PLAYERS", get_pcvar_num(Cvar_iReqPlayers))
+		ze_colored_print(0, "%L", LANG_PLAYER, "NO_ENOUGH_PLAYERS", get_pcvar_num(g_pCvarReqPlayers))
 		return // Block the execution of the blew code 
 	}
 	
-	if (g_bGameStarted)
-	{
-		// Game Already started, Countdown now started
-		set_task(1.0, "Countdown_Start", TASK_COUNTDOWN, _, _, "b")
-		ze_colored_print(0, "%L", LANG_PLAYER, "READY_TO_RUN")
-		ExecuteForward(g_iForwards[FORWARD_GAME_STARTED], g_iFwReturn)
-		
-		// Round Starting
-		g_bIsRoundEnding = false
-	}
+	// Game Already started, Countdown now started
+	set_task(1.0, "Countdown_Start", TASK_COUNTDOWN, _, _, "b")
+	ze_colored_print(0, "%L", LANG_PLAYER, "READY_TO_RUN")
+	ExecuteForward(g_iForwards[FORWARD_GAME_STARTED], g_iFwReturn)
+	
+	g_iRoundNum++
+	
+	// Round Starting
+	g_bIsRoundEnding = false
+	g_bEndCalled = false
 }
 
 // Score Message Task
 public Score_Message(TaskID)
 {
-	if (get_pcvar_num(Cvar_ScoreMessage_iType) == 0)
-		return
-	
-	if (get_pcvar_num(Cvar_ScoreMessage_iType) == 1)
+	switch(get_pcvar_num(g_pCvarScoreMessageType))
 	{
-		set_dhudmessage(get_pcvar_num(Cvar_ScoreMessage_iRed), get_pcvar_num(Cvar_ScoreMessage_iGreen), get_pcvar_num(Cvar_ScoreMessage_iBlue), -1.0, 0.01, 0, 0.0, 9.0)
-		show_dhudmessage(0, "%L", LANG_PLAYER, "SCORE_MESSAGE", g_iZombiesScore, g_iHumansScore)
-	}
-	else if (get_pcvar_num(Cvar_ScoreMessage_iType) == 2)
-	{
-		set_hudmessage(get_pcvar_num(Cvar_ScoreMessage_iRed), get_pcvar_num(Cvar_ScoreMessage_iGreen), get_pcvar_num(Cvar_ScoreMessage_iBlue), -1.0, 0.01, 0, 0.0, 9.0)
-		show_hudmessage(0, "%L", LANG_PLAYER, "SCORE_MESSAGE", g_iZombiesScore, g_iHumansScore)
+		case 0: // Disabled
+		{
+			return
+		}
+		case 1: // DHUD
+		{
+			set_dhudmessage(get_pcvar_num(g_pCvarColors[Red]), get_pcvar_num(g_pCvarColors[Green]), get_pcvar_num(g_pCvarColors[Blue]), -1.0, 0.01, 0, 0.0, 9.0)
+			show_dhudmessage(0, "%L", LANG_PLAYER, "SCORE_MESSAGE", g_iZombiesScore, g_iHumansScore)
+		}
+		case 2: // HUD
+		{
+			set_hudmessage(get_pcvar_num(g_pCvarColors[Red]), get_pcvar_num(g_pCvarColors[Green]), get_pcvar_num(g_pCvarColors[Blue]), -1.0, 0.01, 0, 0.0, 9.0)
+			show_hudmessage(0, "%L", LANG_PLAYER, "SCORE_MESSAGE", g_iZombiesScore, g_iHumansScore)
+		}
 	}
 }
 
@@ -256,54 +321,58 @@ public Countdown_Start(TaskID)
 	if (!g_bGameStarted)
 		return
 	
-	if (!g_iCountDown) // When it reach 0 the !0 will be 1 So it's True
+	if (!g_iCountDown)
 	{
 		Choose_Zombies()
-		remove_task(TaskID) // Remove the task
+		remove_task(TASK_COUNTDOWN) // Remove the task
 		return // Block the execution of the blew code
 	}
 	
 	set_hudmessage(random(256), random(256), random(256), -1.0, 0.21, 0, 0.8, 0.8)
 	show_hudmessage(0, "%L", LANG_PLAYER, "RUN_NOTICE", g_iCountDown)
 
-	g_iCountDown -- // Means: g_iCountDown = g_iCountDown -1
+	g_iCountDown--
 }
 
 public Choose_Zombies()
 {
-	new iZombies, id, AliveCount; AliveCount  = GetAllAlivePlayersNum()
-	new iReqZombies; iReqZombies = RequiredZombies()
+	new iZombies, id, iAliveCount
+	new iReqZombies
 	
-	while (iZombies < iReqZombies)
+	// Get total alive players and required players
+	iAliveCount  = GetAllAlivePlayersNum()
+	iReqZombies = RequiredZombies()
+	
+	// Loop till we find req players
+	while(iZombies < iReqZombies)
 	{
-		id = GetRandomAlive(random_num(1, AliveCount))
+		id = GetRandomAlive(random_num(1, iAliveCount))
 		
 		if (!is_user_alive(id) || g_bIsZombie[id])
 			continue
 
 		Set_User_Zombie(id)
-		set_entvar(id, var_health, get_pcvar_float(Cvar_FirstZombies_iHealth))
+		set_entvar(id, var_health, get_pcvar_float(g_pCvarFirstZombiesHealth))
 		g_bIsZombieFrozen[id] = true
-		g_bZombieFrozenTime = true
+		g_bZombieFreezeTime = true
 		set_entvar(id, var_maxspeed, 1.0)
 		set_task(0.1, "Freeze_Zombies", FREEZE_ZOMBIES, _, _, "b") // Better than PreThink
 		ExecuteForward(g_iForwards[FORWARD_ZOMBIE_APPEAR], g_iFwReturn)
-		iZombies ++
+		iZombies++
 	}
 	
 	// 2 is Hardcoded Value, It's Fix for the countdown to work correctly
-	g_iCountDown = get_pcvar_num(Cvar_Zombie_iReleaseTime) - 2
+	g_iCountDown = get_pcvar_num(g_pCvarZombieReleaseTime) - 2
 	
 	set_task(1.0, "ReleaseZombie_CountDown", TASK_COUNTDOWN2, _, _, "b")
 }
 
 public ReleaseZombie_CountDown(TaskID)
 {
-	if(!g_iCountDown)
+	if (!g_iCountDown)
 	{
 		ReleaseZombie()
-		remove_task(TaskID)
-		
+		remove_task(TASK_COUNTDOWN2)
 		return
 	}
 	
@@ -318,64 +387,84 @@ public ReleaseZombie()
 {
 	ExecuteForward(g_iForwards[FORWARD_ZOMBIE_RELEASE], g_iFwReturn)
 	
-	for(new i = 1; i <= g_iMaxClients; i++)
+	for(new id = 1; id <= g_iMaxClients; id++)
 	{
-		if(is_user_alive(i) && g_bIsZombie[i])
+		if (is_user_alive(id) && g_bIsZombie[id])
 		{
-			g_bIsZombieFrozen[i] = false
-			g_bZombieFrozenTime = false
+			g_bIsZombieFrozen[id] = false
+			g_bZombieFreezeTime = false
 		}
 	}
 }
 
 public Freeze_Zombies(TaskID)
 {
-	for(new i = 1; i <= g_iMaxClients; i++)
+	for(new id = 1; id <= g_iMaxClients; id++)
 	{
-		if(!is_user_alive(i))
+		if(!is_user_alive(id) || !g_bIsZombie[id])
 			continue
 		
-		if (g_bIsZombieFrozen[i] && g_bIsZombie[i])
+		if (g_bIsZombieFrozen[id])
 		{
 			// Zombie & Frozen, then Freeze him
-			set_entvar(i, var_maxspeed, 1.0)
+			set_entvar(id, var_maxspeed, 1.0)
 		}
-		
-		if (!g_bIsZombieFrozen[i] && g_bIsZombie[i])
+		else
 		{
+			if (g_bZSpeedUsed[id])
+			{
+				// Zombie but Not Frozen the set his speed form .cfg
+				set_entvar(id, var_maxspeed, float(g_iZSpeedSet[id]))
+				continue;
+			}
+				
 			// Zombie but Not Frozen the set his speed form .cfg
-			set_entvar(i, var_maxspeed, get_pcvar_float(Cvar_Zombie_fSpeed))
+			set_entvar(id, var_maxspeed, get_pcvar_float(g_pCvarZombieSpeed))
 		}
 	}
 }
 
-public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:damage, Float:direction[3], tracehandle, damagebits)
+public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[3], iTracehandle, bitsDamageType)
 {
 	if (iVictim == iAttacker || !is_user_connected(iVictim) || !is_user_connected(iAttacker))
 		return HC_CONTINUE
 	
-	// Attacker and Victim is in same teams? Skip here only
+	// Attacker and Victim is in same teams? Skip code blew
 	if (get_member(iAttacker, m_iTeam) == get_member(iVictim, m_iTeam))
 		return HC_CONTINUE
 	
-	// In freeze time? Skip all other plugins
+	// In freeze time? Skip all other plugins (Skip the real trace attack event)
 	if (g_bIsZombieFrozen[iVictim] || g_bIsZombieFrozen[iAttacker])
 		return HC_SUPERCEDE
 	
-	g_iAliveCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
+	g_iAliveHumansNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
 	
-	if (get_member(iAttacker, m_iTeam) == TEAM_TERRORIST)
+	if (g_bIsZombie[iAttacker])
 	{
 		// Death Message with Infection style [Added here because of delay in Forward use]
 		SendDeathMsg(iAttacker, iVictim)
 		
+		ExecuteForward(g_iForwards[FORWARD_PRE_INFECTED], g_iFwReturn, iVictim, iAttacker)
+		
+		if (g_iFwReturn > 0)
+		{
+			return HC_CONTINUE
+		}
+		
 		Set_User_Zombie(iVictim)
+		
 		ExecuteForward(g_iForwards[FORWARD_INFECTED], g_iFwReturn, iVictim, iAttacker)
 		
-		if (g_iAliveCTNum == 1) // Check if this is Last Human, Because of Delay i can't check if it's 0 instead of 1
+		if (g_iAliveHumansNum == 1) // Check if this is Last Human, Because of Delay i can't check if it's 0 instead of 1
 		{
+			// End round event called one time
+			g_bEndCalled = true
+			
+			// Round is Ending
+			g_bIsRoundEnding = true
+			
 			// Zombie Win, Leave text blank so we use ours from ML
-			rg_round_end(3.0, WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
+			rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
 			
 			// Show Our Message
 			client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
@@ -383,11 +472,9 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:damage, Float:direction[3], 
 			// This needed so forward work also to add +1 for Zombies
 			g_iTeam = 1 // ZE_TEAM_ZOMBIE
 			ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
-			
-			// Round is Ending
-			g_bIsRoundEnding = true
 		}
 	}
+	
 	return HC_CONTINUE
 }
 
@@ -404,74 +491,88 @@ public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:fDamage, bitsDam
 		set_member(iVictim, m_flVelocityModifier, 1.0)
 		
 		// Set Knockback
-		static Float:fOrigin[3]
-		get_entvar(iAttacker, var_origin, fOrigin)
-		Set_Knockback(iVictim, fOrigin, get_pcvar_float(Cvar_Zombie_fKnockback), 2)
+		static Float:flOrigin[3]
+		get_entvar(iAttacker, var_origin, flOrigin)
+		Set_Knockback(iVictim, flOrigin, get_pcvar_float(g_pCvarZombieKnockback), 2)
 	}
+	
 	return HC_CONTINUE
 }
 
 public Round_End()
 {
-	g_iAliveTNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
-	g_iAliveCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
+	g_iAliveZombiesNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
 	
-	if (g_iAliveTNum == 0 && g_bGameStarted) 
+	if (g_iAliveZombiesNum == 0 && g_bGameStarted) 
 	{
 		g_iTeam = 2 // ZE_TEAM_HUMAN
 		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
 		client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
-		g_iHumansScore ++
+		g_iHumansScore++
 		g_bIsRoundEnding = true
 		return // To block Execute the code blew
 	}
 	
 	g_iTeam = 1 // ZE_TEAM_ZOMBIE
-	g_iZombiesScore ++
+	g_iZombiesScore++
 	g_bIsRoundEnding = true
-	ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
+	
+	// If it's already called one time, don't call it again
+	if (!g_bEndCalled)
+	{
+		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
+	}
+	
 	client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
+}
+
+public Event_RoundEnd_Pre(WinStatus:status, ScenarioEventEndRound:event, Float:tmDelay)
+{
+	// The two unhandeld cases by rg_round_end() native in our Mod
+	if (event == ROUND_CTS_WIN || event == ROUND_TERRORISTS_WIN)
+	{
+		SetHookChainArg(3, ATYPE_FLOAT, get_pcvar_float(g_pCvarRoundEndDelay))
+	}
 }
 
 public Round_Start()
 {
-    g_fReferenceTime = get_gametime()
+    g_flReferenceTime = get_gametime()
     g_iRoundTime = get_member_game(m_iRoundTime)
 }
 
 public Check_RoundTimeleft()
 {
-	new Float:fRoundTimeLeft; fRoundTimeLeft = (g_fReferenceTime + float(g_iRoundTime)) - get_gametime()
+	new Float:flRoundTimeLeft = (g_flReferenceTime + float(g_iRoundTime)) - get_gametime()
 	
-	if (floatround(fRoundTimeLeft) == 0)
+	if (floatround(flRoundTimeLeft) == 0)
 	{
+		// Round is Ending
+		g_bIsRoundEnding = true
+		
 		// If Time is Out then Terminate the Round
-		rg_round_end(3.0, WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
+		rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
 		
 		// Show our Message
 		client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
-		
-		// Round is Ending
-		g_bIsRoundEnding = true
 	}
 }
 
 public client_disconnected(id)
 {
 	// Delay Then Check Players to Terminate The round (Delay needed)
-	set_task(0.1, "Check_AlivePlayers", _, _, _, "a", 1)
+	set_task(0.1, "Check_AlivePlayers")
+	
+	// Reset speed for this dropped id
+	g_bHSpeedUsed[id] = false
+	g_bZSpeedUsed[id] = false
 }
 
 // This check done when player disconnect
 public Check_AlivePlayers()
 {
-	g_iAliveTNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
-	g_iAliveCTNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
-	
-	new iAllTNum = GetTeamPlayersNum(CsTeams:TEAM_TERRORIST),
-	iAllCTNum = GetTeamPlayersNum(CsTeams:TEAM_CT),
-	iDeadTNum = GetDeadPlayersNum(CsTeams:TEAM_TERRORIST),
-	iDeadCTNum = GetDeadPlayersNum(CsTeams:TEAM_CT)
+	g_iAliveZombiesNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
+	g_iAliveHumansNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
 	
 	// Game Started? (There is at least 2 players Alive?)
 	if (g_bGameStarted)
@@ -480,7 +581,7 @@ public Check_AlivePlayers()
 		if (get_member_game(m_bFreezePeriod))
 		{
 			// Humans alive number = 1 and no zombies?
-			if (g_iAliveCTNum < get_pcvar_num(Cvar_iReqPlayers))
+			if (g_iAliveHumansNum < get_pcvar_num(g_pCvarReqPlayers))
 			{
 				// Game started false again
 				g_bGameStarted = false
@@ -488,37 +589,43 @@ public Check_AlivePlayers()
 		}
 		else // Not freeze time?
 		{
+			// Variables
+			new iAllZombiesNum = GetTeamPlayersNum(CsTeams:TEAM_TERRORIST),
+			iAllHumansNum = GetTeamPlayersNum(CsTeams:TEAM_CT),
+			iDeadZombiesNum = GetDeadPlayersNum(CsTeams:TEAM_TERRORIST),
+			iDeadHumansNum = GetDeadPlayersNum(CsTeams:TEAM_CT)
+	
 			// Alive humans number = 1 and no zombies at all, And no dead humans?
-			if (g_iAliveCTNum < get_pcvar_num(Cvar_iReqPlayers) && iDeadCTNum == 0 && iAllTNum == 0)
+			if (g_iAliveHumansNum < get_pcvar_num(g_pCvarReqPlayers) && iDeadHumansNum == 0 && iAllZombiesNum == 0)
 			{
 				// Game started is false and humans wins (Escape Success)
 				g_bGameStarted = false
-				rg_round_end(3.0, WINSTATUS_CTS, ROUND_CTS_WIN, "")
+				rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_CTS, ROUND_CTS_WIN, "")
 				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
 			}
 			
 			// Alive zombies number = 1 and no humans at all, And no dead zombies?
-			if (g_iAliveTNum < get_pcvar_num(Cvar_iReqPlayers) && iDeadTNum == 0 && iAllCTNum == 0)
+			if (g_iAliveZombiesNum < get_pcvar_num(g_pCvarReqPlayers) && iDeadZombiesNum == 0 && iAllHumansNum == 0)
 			{
-				// Game started is false and humans wins (Escape Success)
+				// Game started is false and zombies wins (Escape Fail)
 				g_bGameStarted = false
-				rg_round_end(3.0, WINSTATUS_CTS, ROUND_CTS_WIN, "")
-				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
+				rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
+				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
 			}
 			
 			// Humans number more than 1 and no zombies?
-			if (g_iAliveCTNum >= get_pcvar_num(Cvar_iReqPlayers) && g_iAliveTNum == 0 && !g_bIsRoundEnding)
+			if (g_iAliveHumansNum >= get_pcvar_num(g_pCvarReqPlayers) && g_iAliveZombiesNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape success as there is no Zombies
-				rg_round_end(3.0, WINSTATUS_CTS, ROUND_CTS_WIN, "")
+				rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_CTS, ROUND_CTS_WIN, "")
 				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
 			}
 			
 			// Zombies number more than 1 and no humans?
-			if (g_iAliveTNum >= get_pcvar_num(Cvar_iReqPlayers) && g_iAliveCTNum == 0 && !g_bIsRoundEnding)
+			if (g_iAliveZombiesNum >= get_pcvar_num(g_pCvarReqPlayers) && g_iAliveHumansNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape Fail as there is no humans
-				rg_round_end(3.0, WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
+				rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
 				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
 			}
 		}
@@ -539,11 +646,8 @@ public Check_AllPlayersNumber(TaskID)
 		remove_task(TaskID)
 		return
 	}
-		
-	if (GetAllAlivePlayersNum() < get_pcvar_num(Cvar_iReqPlayers))
-		return
 	
-	if (GetAllAlivePlayersNum() == get_pcvar_num(Cvar_iReqPlayers))
+	if (GetAllAlivePlayersNum() >= get_pcvar_num(g_pCvarReqPlayers))
 	{
 		// Players In server == The Required so game started is true
 		g_bGameStarted = true
@@ -557,21 +661,6 @@ public Check_AllPlayersNumber(TaskID)
 		// Remove the task
 		remove_task(TaskID)
 	}
-	
-	// Simple Fix for bots, If many of them connect fast then the == 2 won't be detected so this to detect it
-	if (GetAllAlivePlayersNum() > get_pcvar_num(Cvar_iReqPlayers) && !g_bGameStarted)
-	{
-		g_bGameStarted = true
-		
-		// Restart the game
-		server_cmd("sv_restart 2")
-		
-		// Print Fake "Game Commencing" Message
-		client_print(0, print_center, "%L", LANG_PLAYER, "START_GAME")		
-		
-		// Remove the task
-		remove_task(TaskID)
-	}
 }
 
 public Set_User_Human(id)
@@ -580,8 +669,8 @@ public Set_User_Human(id)
 		return
 	
 	g_bIsZombie[id] = false
-	set_entvar(id, var_health, get_pcvar_float(Cvar_Human_iHealth))
-	set_entvar(id, var_gravity, get_pcvar_float(Cvar_Human_fGravity)/800.0)
+	set_entvar(id, var_health, get_pcvar_float(g_pCvarHumanHealth))
+	set_entvar(id, var_gravity, get_pcvar_float(g_pCvarHumanGravity)/800.0)
 	ExecuteForward(g_iForwards[FORWARD_HUMANIZED], g_iFwReturn, id)
 	
 	if (get_member(id, m_iTeam) != TEAM_CT)
@@ -594,8 +683,8 @@ public Set_User_Zombie(id)
 		return
 	
 	g_bIsZombie[id] = true
-	set_entvar(id, var_health, get_pcvar_float(Cvar_Zombie_iHealth))
-	set_entvar(id, var_gravity, get_pcvar_float(Cvar_Zombie_fGravity)/800.0)
+	set_entvar(id, var_health, get_pcvar_float(g_pCvarZombieHealth))
+	set_entvar(id, var_gravity, get_pcvar_float(g_pCvarZombieGravity)/800.0)
 	rg_remove_all_items(id)
 	rg_give_item(id, "weapon_knife", GT_APPEND)
 	ExecuteForward(g_iForwards[FORWARD_INFECTED], g_iFwReturn, id, 0)
@@ -607,27 +696,134 @@ public Set_User_Zombie(id)
 public Map_Restart()
 {
 	// Add Delay To help Rest Scores if player kill himself, and there no one else him so round draw (Delay needed)
-	set_task(0.1, "Rest_Score_Message", _, _, _, "a", 1)
+	set_task(0.1, "Reset_Score_Message")
 }
 
-public Rest_Score_Message()
+public Reset_Score_Message()
 {
 	g_iHumansScore = 0
 	g_iZombiesScore = 0
+	g_iRoundNum = 0
 }
 
 // Natives
 public native_ze_is_user_zombie(id)
 {
+	if (!is_user_connected(id))
+	{
+		return -1;
+	}
+	
 	return g_bIsZombie[id]
 }
 
 public native_ze_set_user_zombie(id)
 {
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false;
+	}
+	
 	Set_User_Zombie(id)
+	return true;
 }
 
 public native_ze_set_user_human(id)
 {
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false;
+	}
+	
 	Set_User_Human(id)
+	return true;
+}
+
+public native_ze_is_game_started()
+{
+	return g_bGameStarted
+}
+
+public native_ze_is_zombie_frozen(id)
+{
+	if (!is_user_connected(id) || !g_bIsZombie[id])
+	{
+		return -1;
+	}
+	
+	return g_bIsZombieFrozen[id]
+}
+
+public native_ze_get_round_number()
+{
+	if (!g_bGameStarted)
+	{
+		return -1;
+	}
+	
+	return g_iRoundNum
+}
+
+public native_ze_get_humans_number()
+{
+	return GetAlivePlayersNum(CsTeams:TEAM_CT)
+}
+
+public native_ze_get_zombies_number()
+{
+	return GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
+}
+
+public native_ze_set_human_speed_factor(id, iFactor)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false;
+	}
+	
+	g_bHSpeedUsed[id] = true
+	g_iHSpeedFactor[id] = iFactor
+	ExecuteHamB(Ham_Item_PreFrame, id)
+	return true;
+}
+
+public native_ze_reset_human_speed(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false;
+	}
+	
+	g_bHSpeedUsed[id] = false
+	ExecuteHamB(Ham_Item_PreFrame, id)
+	return true;
+}
+
+public native_ze_set_zombie_speed(id, iSpeed)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false;
+	}
+	
+	g_bZSpeedUsed[id] = true
+	g_iZSpeedSet[id] = iSpeed
+	return true;
+}
+
+public native_ze_reset_zombie_speed(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false;
+	}
+	
+	g_bZSpeedUsed[id] = false
+	return true;
 }

@@ -120,9 +120,13 @@ const MENU_KEY_NEXT = 8
 const MENU_KEY_EXIT = 9
 
 // Variables
-new Array:g_szPrimaryWeapons
-new Array:g_szSecondaryWeapons
-new g_iMenuData[33][4], Float:g_fBuyTimeStart[33], bool:g_bBoughtPrimary[33], bool:g_bBoughtSecondary[33]
+new Array:g_szPrimaryWeapons,
+	Array:g_szSecondaryWeapons
+
+new g_iMenuData[33][4], 
+	Float:g_fBuyTimeStart[33], 
+	bool:g_bBoughtPrimary[33], 
+	bool:g_bBoughtSecondary[33]
 
 // Define
 #define WPN_STARTID g_iMenuData[id][0]
@@ -133,7 +137,17 @@ new g_iMenuData[33][4], Float:g_fBuyTimeStart[33], bool:g_bBoughtPrimary[33], bo
 #define WPN_AUTO_SEC g_iMenuData[id][3]
 
 // Cvars
-new Cvar_Buy_Time, Cvar_HE_Grenade, Cvar_Smoke_Grenade, Cvar_FB_Grenade
+new g_pCvarBuyTime, 
+	g_pCvarHEGrenade, 
+	g_pCvarSmokeGrenade, 
+	g_pCvarFlashGrenade
+	
+public plugin_natives()
+{
+	register_native("ze_show_weapon_menu", "native_ze_show_weapon_menu", 1)
+	register_native("ze_is_auto_buy_enabled", "native_ze_is_auto_buy_enabled", 1)
+	register_native("ze_disable_auto_buy", "native_ze_disable_auto_buy", 1)
+}
 
 public plugin_precache()
 {
@@ -178,10 +192,10 @@ public plugin_init()
 	register_clcmd("say_team /enable", "Cmd_Enable")
 	
 	// Cvars
-	Cvar_Buy_Time = register_cvar("ze_buy_time", "60")
-	Cvar_HE_Grenade = register_cvar("ze_give_HE_nade", "1") // 0 Nothing || 1 Give HE
-	Cvar_Smoke_Grenade = register_cvar("ze_give_smoke_nade", "1")
-	Cvar_FB_Grenade = register_cvar("ze_give_FB_nade", "1")
+	g_pCvarBuyTime = register_cvar("ze_buy_time", "60")
+	g_pCvarHEGrenade = register_cvar("ze_give_HE_nade", "1") // 0 Nothing || 1 Give HE
+	g_pCvarSmokeGrenade = register_cvar("ze_give_SM_nade", "1")
+	g_pCvarFlashGrenade = register_cvar("ze_give_FB_nade", "1")
 	
 	// Menus
 	register_menu("Primary Weapons", KEYSMENU, "Menu_Buy_Primary")
@@ -257,15 +271,15 @@ public ze_user_humanized(id)
 	Show_Available_Buy_Menus(id)
 	
 	// Give HE Grenade
-	if (get_pcvar_num(Cvar_HE_Grenade) != 0)
+	if (get_pcvar_num(g_pCvarHEGrenade) != 0)
 		rg_give_item(id, "weapon_hegrenade")
 	
 	// Give Smoke Grenade
-	if (get_pcvar_num(Cvar_Smoke_Grenade) != 0)
+	if (get_pcvar_num(g_pCvarSmokeGrenade) != 0)
 		rg_give_item(id, "weapon_smokegrenade")
 	
 	// Give Flashbang Grenade
-	if (get_pcvar_num(Cvar_FB_Grenade) != 0)
+	if (get_pcvar_num(g_pCvarFlashGrenade) != 0)
 		rg_give_item(id, "weapon_flashbang")
 }
 
@@ -290,7 +304,7 @@ public Show_Available_Buy_Menus(id)
 
 public Show_Menu_Buy_Primary(id)
 {
-	new iMenuTime = floatround(g_fBuyTimeStart[id] + get_pcvar_float(Cvar_Buy_Time) - get_gametime())
+	new iMenuTime = floatround(g_fBuyTimeStart[id] + get_pcvar_float(g_pCvarBuyTime) - get_gametime())
 	
 	if (iMenuTime <= 0)
 	{
@@ -324,7 +338,7 @@ public Show_Menu_Buy_Primary(id)
 
 public Show_Menu_Buy_Secondary(id)
 {
-	new iMenuTime = floatround(g_fBuyTimeStart[id] + get_pcvar_float(Cvar_Buy_Time) - get_gametime())
+	new iMenuTime = floatround(g_fBuyTimeStart[id] + get_pcvar_float(g_pCvarBuyTime) - get_gametime())
 	
 	if (iMenuTime <= 0)
 	{
@@ -456,4 +470,40 @@ public Buy_Secondary_Weapon(id, selection)
 	
 	// Secondary bought
 	g_bBoughtSecondary[id] = true
+}
+
+// Natives
+public native_ze_show_weapon_menu(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player (%d)", id)
+		return false
+	}
+	
+	Cmd_Buy(id)
+	return true
+}
+
+public native_ze_is_auto_buy_enabled(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player (%d)", id)
+		return -1;
+	}
+	
+	return WPN_AUTO_ON;
+}
+
+public native_ze_disable_auto_buy(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player (%d)", id)
+		return false
+	}
+	
+	WPN_AUTO_ON = 0;
+	return true
 }

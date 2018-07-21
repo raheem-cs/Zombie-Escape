@@ -8,12 +8,25 @@ new const szNvgSound[2][] =
 }
 
 // Variables
-new Float:g_fLastNvgToggle[33], bool:g_bNvgOn[33], g_szLightStyle[2]
+new Float:g_flLastNvgToggle[33], 
+	bool:g_bNvgOn[33], 
+	g_szLightStyle[2],
+	g_iMaxClients
 
 // Cvars
-new Cvar_Zombie_iNvision, Cvar_Zombie_iAutoNVision, Cvar_Zombie_Nvision_iDensity,
-Cvar_Zombie_Nvision_iRed, Cvar_Zombie_Nvision_iGreen, Cvar_Zombie_Nivision_iBlue,
-Cvar_Lighting_Style
+new g_pCvarZombieNVission, 
+	g_pCvarZombieAutoNVision, 
+	g_pCvarNVisionDensity,
+	g_pCvarZombieNVisionColors[3],
+	g_pCvarLightingStyle
+	
+// Colors
+enum
+{
+	Red = 0,
+	Green,
+	Blue
+}
 
 public plugin_init()
 {
@@ -26,13 +39,16 @@ public plugin_init()
 	register_clcmd("nightvision", "Cmd_NvgToggle")
 	
 	// Cvars
-	Cvar_Zombie_iNvision = register_cvar("ze_zombie_nightvision", "1")
-	Cvar_Zombie_iAutoNVision = register_cvar("ze_zombie_auto_nightvision", "1")
-	Cvar_Zombie_Nvision_iDensity = register_cvar("ze_zombie_nightvision_density", "0.0010")
-	Cvar_Zombie_Nvision_iRed = register_cvar("ze_zombie_nvision_red", "255")
-	Cvar_Zombie_Nvision_iGreen = register_cvar("ze_zombie_nvision_green", "0")
-	Cvar_Zombie_Nivision_iBlue = register_cvar("ze_zombie_nvision_blue", "0")
-	Cvar_Lighting_Style = register_cvar("ze_lighting_style", "d")
+	g_pCvarZombieNVission = register_cvar("ze_zombie_nightvision", "1")
+	g_pCvarZombieAutoNVision = register_cvar("ze_zombie_auto_nightvision", "1")
+	g_pCvarNVisionDensity = register_cvar("ze_zombie_nightvision_density", "0.0010")
+	g_pCvarZombieNVisionColors[Red] = register_cvar("ze_zombie_nvision_red", "255")
+	g_pCvarZombieNVisionColors[Green] = register_cvar("ze_zombie_nvision_green", "0")
+	g_pCvarZombieNVisionColors[Blue] = register_cvar("ze_zombie_nvision_blue", "0")
+	g_pCvarLightingStyle = register_cvar("ze_lighting_style", "d")
+	
+	// Static Values
+	g_iMaxClients = get_member_game(m_nMaxPlayers)
 	
 	// Set Lighting Task
 	set_task(1.0, "Lighting_Style", _, _, _, "b")
@@ -41,23 +57,23 @@ public plugin_init()
 public Lighting_Style()
 {
 	// Get light value from .cfg File and Store it in zero-based string array (If this value changed from sever it will apply instant not need changing map)
-	get_pcvar_string(Cvar_Lighting_Style, g_szLightStyle, charsmax(g_szLightStyle))
+	get_pcvar_string(g_pCvarLightingStyle, g_szLightStyle, charsmax(g_szLightStyle))
 	
-	for (new i = 1; i <= get_member_game(m_nMaxPlayers); i++)
+	for (new id = 1; id <= g_iMaxClients; id++)
 	{
 		// Not Set For Un-Connected or Zombies
-		if (!is_user_connected(i) || ze_is_user_zombie(i))
+		if (!is_user_connected(id) || ze_is_user_zombie(id))
 			continue
 		
-		Set_MapLightStyle(i, g_szLightStyle)
+		Set_MapLightStyle(id, g_szLightStyle)
 	}
 }
 
 public ze_user_infected(iVictim, iInfector)
 {
-	if (get_pcvar_num(Cvar_Zombie_iAutoNVision) != 0)
+	if (get_pcvar_num(g_pCvarZombieAutoNVision) != 0)
 	{
-		Set_NightVision(iVictim, 0, 0, 0x0004, get_pcvar_num(Cvar_Zombie_Nvision_iRed), get_pcvar_num(Cvar_Zombie_Nvision_iGreen), get_pcvar_num(Cvar_Zombie_Nivision_iBlue), get_pcvar_num(Cvar_Zombie_Nvision_iDensity))
+		Set_NightVision(iVictim, 0, 0, 0x0004, get_pcvar_num(g_pCvarZombieNVisionColors[Red]), get_pcvar_num(g_pCvarZombieNVisionColors[Green]), get_pcvar_num(g_pCvarZombieNVisionColors[Blue]), get_pcvar_num(g_pCvarNVisionDensity))
 		Set_MapLightStyle(iVictim, "z")
 		g_bNvgOn[iVictim] = true
 		PlaySound(iVictim, szNvgSound[1])
@@ -68,20 +84,20 @@ public Cmd_NvgToggle(id)
 {
 	if (is_user_alive(id))
 	{
-		if(ze_is_user_zombie(id) && get_pcvar_num(Cvar_Zombie_iNvision) != 0)
+		if(ze_is_user_zombie(id) && get_pcvar_num(g_pCvarZombieNVission) != 0)
 		{
 			new Float:fReffrenceTime = get_gametime()
 			
-			if(g_fLastNvgToggle[id] > fReffrenceTime)
+			if(g_flLastNvgToggle[id] > fReffrenceTime)
 				return
 			
 			// Just Add Delay like in default one in CS and to allow sound complete
-			g_fLastNvgToggle[id] = fReffrenceTime + 1.5
+			g_flLastNvgToggle[id] = fReffrenceTime + 1.5
 			
 			if(!g_bNvgOn[id])
 			{
 				g_bNvgOn[id] = true
-				Set_NightVision(id, 0, 0, 0x0004, get_pcvar_num(Cvar_Zombie_Nvision_iRed), get_pcvar_num(Cvar_Zombie_Nvision_iGreen), get_pcvar_num(Cvar_Zombie_Nivision_iBlue), get_pcvar_num(Cvar_Zombie_Nvision_iDensity))
+				Set_NightVision(id, 0, 0, 0x0004, get_pcvar_num(g_pCvarZombieNVisionColors[Red]), get_pcvar_num(g_pCvarZombieNVisionColors[Green]), get_pcvar_num(g_pCvarZombieNVisionColors[Blue]), get_pcvar_num(g_pCvarNVisionDensity))
 				Set_MapLightStyle(id, "z")
 				PlaySound(id, szNvgSound[1])
 			}

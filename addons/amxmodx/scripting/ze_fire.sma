@@ -27,6 +27,7 @@ new const szFireGrenadePlayerSound[][] =
 
 new g_v_szModelFireGrenade[MODEL_MAX_LENGTH] = "models/zombie_escape/v_grenade_fire.mdl"
 new g_p_szModelFireGrenade[MODEL_MAX_LENGTH] = "models/zombie_escape/p_grenade_fire.mdl"
+new g_w_szModelFireGrenade[MODEL_MAX_LENGTH] = "models/zombie_escape/w_grenade_fire.mdl"
 
 new g_szGrenadeTrailSprite[SPRITE_MAX_LENGTH] = "sprites/laserbeam.spr"
 new g_szGrenadeRingSprite[SPRITE_MAX_LENGTH] = "sprites/shockwave.spr"
@@ -38,16 +39,27 @@ new Array:g_szFireGrenadeExplodeSound
 new Array:g_szFireGrenadePlayerSound
 
 // Forwards
-new g_iFwUserBurn, g_iForwardReturn
+new g_iFwUserBurn, 
+	g_iForwardReturn
 
 // Variables
-new g_iBurningDuration[33]
+new g_iBurningDuration[33],
+	g_iMaxClients
 
 // Sprites
-new g_iTrailSpr, g_iExplodeSpr, g_iFlameSpr, g_iSmokeSpr
+new g_iTrailSpr, 
+	g_iExplodeSpr,
+	g_iFlameSpr,
+	g_iSmokeSpr
 
 //Cvars
-new Cvar_Fire_Duration, Cvar_Fire_Damage, Cvar_Fire_Hud_Icon, Cvar_Fire_Explosion, Cvar_Fire_Slowdown, Cvar_Fire_Radius
+new g_pCvarFireDuration, 
+	g_pCvarFireDamage,
+	g_pCvarFireHudIcon,
+	g_pCvarFireExplosion,
+	g_pCvarFireSlowDown,
+	g_pCvarFireRadius,
+	g_pCvarHitType
 
 public plugin_init()
 {
@@ -66,12 +78,16 @@ public plugin_init()
 	g_iFwUserBurn = CreateMultiForward("ze_fire_pre", ET_CONTINUE, FP_CELL)
 	
 	// Cvars
-	Cvar_Fire_Duration = register_cvar("ze_fire_duration", "6")
-	Cvar_Fire_Damage = register_cvar("ze_fire_damage", "5")
-	Cvar_Fire_Hud_Icon = register_cvar("ze_fire_hud_icon", "1")
-	Cvar_Fire_Explosion = register_cvar("ze_fire_explosion", "0")
-	Cvar_Fire_Slowdown = register_cvar("ze_fire_slowdown", "0.1")
-	Cvar_Fire_Radius = register_cvar("ze_fire_radius", "240.0")
+	g_pCvarFireDuration = register_cvar("ze_fire_duration", "6")
+	g_pCvarFireDamage = register_cvar("ze_fire_damage", "5")
+	g_pCvarFireHudIcon = register_cvar("ze_fire_hud_icon", "1")
+	g_pCvarFireExplosion = register_cvar("ze_fire_explosion", "0")
+	g_pCvarFireSlowDown = register_cvar("ze_fire_slowdown", "0.1")
+	g_pCvarFireRadius = register_cvar("ze_fire_radius", "240.0")
+	g_pCvarHitType = register_cvar("ze_fire_hit_type", "0")
+	
+	// Static Values
+	g_iMaxClients = get_member_game(m_nMaxPlayers)
 }
 
 public plugin_precache()
@@ -111,6 +127,8 @@ public plugin_precache()
 		amx_save_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "V_GRENADE FIRE", g_v_szModelFireGrenade)
 	if (!amx_load_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "P_GRENADE FIRE", g_p_szModelFireGrenade, charsmax(g_p_szModelFireGrenade)))
 		amx_save_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "P_GRENADE FIRE", g_p_szModelFireGrenade)
+	if (!amx_load_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "W_GRENADE FIRE", g_w_szModelFireGrenade, charsmax(g_w_szModelFireGrenade)))
+		amx_save_setting_string(ZE_SETTING_RESOURCES, "Weapon Models", "W_GRENADE FIRE", g_w_szModelFireGrenade)
 	if (!amx_load_setting_string(ZE_SETTING_RESOURCES, "Grenade Sprites", "TRAIL", g_szGrenadeTrailSprite, charsmax(g_szGrenadeTrailSprite)))
 		amx_save_setting_string(ZE_SETTING_RESOURCES, "Grenade Sprites", "TRAIL", g_szGrenadeTrailSprite)
 	if (!amx_load_setting_string(ZE_SETTING_RESOURCES, "Grenade Sprites", "RING", g_szGrenadeRingSprite, charsmax(g_szGrenadeRingSprite)))
@@ -138,6 +156,7 @@ public plugin_precache()
 	// Precache Models
 	precache_model(g_v_szModelFireGrenade)
 	precache_model(g_p_szModelFireGrenade)
+	precache_model(g_w_szModelFireGrenade)
 	
 	// Precache Sprites
 	g_iTrailSpr = precache_model(g_szGrenadeTrailSprite)
@@ -156,8 +175,7 @@ public native_ze_zombie_in_fire(id)
 {
 	if (!is_user_alive(id))
 	{
-		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player (%d)", id)
-		return false
+		return -1;
 	}
 	
 	return task_exists(id+TASK_BURN)
@@ -168,7 +186,7 @@ public native_ze_set_fire_grenade(id, set)
 	if (!is_user_alive(id))
 	{
 		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player (%d)", id)
-		return false;
+		return -1;
 	}
 	
 	if (!set)
@@ -221,19 +239,16 @@ public client_disconnected(id)
 public Fw_SetModel_Post(entity, const model[])
 {
 	if (strlen(model) < 8)
-		return;
-	
-	if (model[7] != 'w' || model[8] != '_')
-		return
+		return FMRES_IGNORED
 	
 	static Float:dmgtime
 	get_entvar(entity, var_dmgtime, dmgtime)
 	
 	if (dmgtime == 0.0)
-		return
+		return FMRES_IGNORED
 	
 	if (ze_is_user_zombie(get_entvar(entity, var_owner)))
-		return
+		return FMRES_IGNORED
 	
 	if (model[9] == 'h' && model[10] == 'e')
 	{
@@ -253,6 +268,15 @@ public Fw_SetModel_Post(entity, const model[])
 		
 		set_entvar(entity, var_flTimeStepSound, 2222.0)
 	}
+	
+	// Set w_ model
+	if (equali(model, "models/w_hegrenade.mdl"))
+	{
+		engfunc(EngFunc_SetModel, entity, g_w_szModelFireGrenade)
+		return FMRES_SUPERCEDE
+	}
+	
+	return FMRES_IGNORED
 }
 
 public Fw_ThinkGrenade_Post(entity)
@@ -270,7 +294,7 @@ public Fw_ThinkGrenade_Post(entity)
 	
 	fire_explode(entity)
 	
-	if (get_pcvar_num(Cvar_Fire_Explosion) == 1)
+	if (get_pcvar_num(g_pCvarFireExplosion) == 1)
 	{
 		set_entvar(entity, var_flTimeStepSound, 0.0)
 		return HAM_IGNORED
@@ -285,7 +309,7 @@ fire_explode(ent)
 	static Float:origin[3]
 	get_entvar(ent, var_origin, origin)
 	
-	if (get_pcvar_num(Cvar_Fire_Explosion) == 0)
+	if (get_pcvar_num(g_pCvarFireExplosion) == 0)
 	{
 		create_blast2(origin)
 		
@@ -295,14 +319,50 @@ fire_explode(ent)
 		emit_sound(ent, CHAN_WEAPON, szSound, 1.0, ATTN_NORM, 0, PITCH_NORM)
 	}
 	
-	new victim = -1
-	
-	while ((victim = engfunc(EngFunc_FindEntityInSphere, victim, origin, get_pcvar_float(Cvar_Fire_Radius))) != 0)
+	if (!get_pcvar_num(g_pCvarHitType))
 	{
-		if (!is_user_alive(victim) || !ze_is_user_zombie(victim))
-			continue
+		new victim = -1
+
+		while ((victim = engfunc(EngFunc_FindEntityInSphere, victim, origin, get_pcvar_float(g_pCvarFireRadius))) != 0)
+		{
+			if (!is_user_alive(victim) || !ze_is_user_zombie(victim))
+				continue
+			
+			set_on_fire(victim)
+		}
+	}
+	else
+	{
+		new Float:flNadeOrigin[3], Float:flVictimOrigin[3], Float:flDistance, tr = create_tr2(), Float:flFraction
+		get_entvar(ent, var_origin, flNadeOrigin)
 		
-		set_on_fire(victim)
+		for(new iVictim = 1; iVictim <= g_iMaxClients; iVictim++)
+		{
+			if (!is_user_alive(iVictim) || !ze_is_user_zombie(iVictim))
+				continue
+			
+			get_entvar(iVictim, var_origin, flVictimOrigin)
+			
+			// Get distance between nade and player
+			flDistance = vector_distance(flNadeOrigin, flVictimOrigin)
+			
+			if(flDistance > get_pcvar_float(g_pCvarFireRadius))
+				continue
+			
+			flNadeOrigin[2] += 2.0;
+			engfunc(EngFunc_TraceLine, flNadeOrigin, flVictimOrigin, DONT_IGNORE_MONSTERS, ent, tr);
+			flNadeOrigin[2] -= 2.0;
+			
+			get_tr2(tr, TR_flFraction, flFraction);
+			
+			if(flFraction != 1.0 && get_tr2(tr, TR_pHit) != iVictim)
+				continue;
+			
+			set_on_fire(iVictim)
+		}
+		
+		// Free the trace handler
+		free_tr2(tr);
 	}
 }
 
@@ -313,7 +373,7 @@ set_on_fire(victim)
 	if (g_iForwardReturn >= PLUGIN_HANDLED)
 		return false;
 	
-	if (get_pcvar_num(Cvar_Fire_Hud_Icon))
+	if (get_pcvar_num(g_pCvarFireHudIcon))
 	{
 		message_begin(MSG_ONE_UNRELIABLE, get_user_msgid("Damage"), _, victim)
 		write_byte(0) // damage save
@@ -325,7 +385,7 @@ set_on_fire(victim)
 		message_end()
 	}
 	
-	g_iBurningDuration[victim] += get_pcvar_num(Cvar_Fire_Duration) * 5
+	g_iBurningDuration[victim] += get_pcvar_num(g_pCvarFireDuration) * 5
 	
 	remove_task(victim+TASK_BURN)
 	set_task(0.2, "burning_flame", victim+TASK_BURN, _, _, "b")
@@ -366,18 +426,18 @@ public burning_flame(taskid)
 	}
 	
 	// Fire slow down
-	if ((flags & FL_ONGROUND) && get_pcvar_float(Cvar_Fire_Slowdown) > 0.0)
+	if ((flags & FL_ONGROUND) && get_pcvar_float(g_pCvarFireSlowDown) > 0.0)
 	{
 		static Float:fVelocity[3]
 		get_entvar(ID_BURN, var_velocity, fVelocity)
-		VecMulScalar(fVelocity, get_pcvar_float(Cvar_Fire_Slowdown), fVelocity)
+		VecMulScalar(fVelocity, get_pcvar_float(g_pCvarFireSlowDown), fVelocity)
 		set_entvar(ID_BURN, var_velocity, fVelocity)
 	}
 	
 	new health = get_user_health(ID_BURN)
 	
-	if (health - floatround(get_pcvar_float(Cvar_Fire_Damage), floatround_ceil) > 0)
-		set_entvar(ID_BURN, var_health, float(health - floatround(get_pcvar_float(Cvar_Fire_Damage), floatround_ceil)))
+	if (health - floatround(get_pcvar_float(g_pCvarFireDamage), floatround_ceil) > 0)
+		set_entvar(ID_BURN, var_health, float(health - floatround(get_pcvar_float(g_pCvarFireDamage), floatround_ceil)))
 	
 	message_begin(MSG_PVS, SVC_TEMPENTITY, origin)
 	write_byte(TE_SPRITE) // TE id

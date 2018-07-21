@@ -4,16 +4,18 @@
 new g_iMaxClients
 
 // Cvars
-new Cvar_Human_Infected_iFrags, Cvar_Escape_Success_iFrags, Cvar_Infection_Deaths
+new g_pCvarHumanInfectedFrags, 
+	g_pCvarEscapeSuccessFrags, 
+	g_pCvarInfectionDeaths
 
 public plugin_init()
 {
 	register_plugin("[ZE] Frags Awards/Death Effects", ZE_VERSION, AUTHORS)
 	
 	// Cvars
-	Cvar_Human_Infected_iFrags = register_cvar("ze_human_infected_frags", "1")
-	Cvar_Infection_Deaths = register_cvar("ze_infection_deaths", "1")
-	Cvar_Escape_Success_iFrags = register_cvar("ze_escape_success_frags", "3")
+	g_pCvarHumanInfectedFrags = register_cvar("ze_human_infected_frags", "1")
+	g_pCvarInfectionDeaths = register_cvar("ze_infection_deaths", "1")
+	g_pCvarEscapeSuccessFrags = register_cvar("ze_escape_success_frags", "3")
 	
 	// Static Values
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
@@ -25,7 +27,7 @@ public ze_user_infected(iVictim, iInfector)
 		return
 	
 	// Award Zombie Who infected, And Increase Deaths of the infected human
-	UpdateFrags(iInfector, iVictim, get_pcvar_num(Cvar_Human_Infected_iFrags), get_pcvar_num(Cvar_Infection_Deaths), 1)
+	UpdateFrags(iInfector, iVictim, get_pcvar_num(g_pCvarHumanInfectedFrags), get_pcvar_num(g_pCvarInfectionDeaths), 1)
 	
 	// Adding Infection icon on Victim Screen
 	InfectionIcon(iVictim)
@@ -45,7 +47,7 @@ public ze_roundend(WinTeam)
 				continue
 			
 			// + Frags for All humans Who are Alive
-			UpdateFrags(i, 0, get_pcvar_num(Cvar_Escape_Success_iFrags), 0, 1)
+			UpdateFrags(i, 0, get_pcvar_num(g_pCvarEscapeSuccessFrags), 0, 1)
 		}
 	}
 }

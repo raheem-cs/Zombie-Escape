@@ -1,10 +1,15 @@
 #include <zombie_escape>
 
-new g_iLimitCounter[33][MAX_EXTRA_ITEMS]
+// Variables
+new g_iLimitCounter[MAX_PLAYERS+1][MAX_EXTRA_ITEMS],
+	g_iMaxClients
 
 public plugin_init()
 {
 	register_plugin("[ZE] Items Manager: Limit", ZE_VERSION, AUTHORS)
+	
+	// Static Values
+	g_iMaxClients = get_member_game(m_nMaxPlayers)
 }
 
 public ze_select_item_pre(id, itemid, ignorecost)
@@ -15,7 +20,7 @@ public ze_select_item_pre(id, itemid, ignorecost)
 	{
 		// Format extra text to be added beside our item
 		new szText[32]
-		formatex(szText, charsmax(szText), "\w[\r%i\d|\r%i\w]", g_iLimitCounter[id][itemid], iLimit)
+		formatex(szText, charsmax(szText), " %L", id, "ITEM_LIMIT", g_iLimitCounter[id][itemid], iLimit)
 		
 		// Add the text
 		ze_add_text_to_item(szText)
@@ -42,7 +47,7 @@ public ze_select_item_post(id, itemid, ignorecost)
 public ze_game_started()
 {
 	// Rest our counter to zero
-	for (new j = 0; j < 33; j++)
+	for (new j = 1; j <= g_iMaxClients; j++)
 	{
 		for (new i = 0; i < MAX_EXTRA_ITEMS; i++)
 		{

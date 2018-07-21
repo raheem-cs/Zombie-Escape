@@ -1,16 +1,26 @@
 #include <zombie_escape>
 
+// Defines
+#define HUD_MONEY				(1<<5)
+#define HUD_RADAR_HEALTH_ARMOR	(1<<3)
+
+// Variables
+new g_iFwSpawn
+
 // Cvars
-new Cvar_iBlockKillCmd, g_iFwSpawn
+new g_pCvarBlockKillCmd, 
+	g_pCvarBlockMoneyHUD, 
+	g_pCvarBlockOtherHUD
 
 public plugin_init()
 {
 	register_plugin("[ZE] Blocked Messages & Events", ZE_VERSION, AUTHORS)
 	
 	// Block some messages
-	register_message(get_user_msgid("TextMsg"), "message_TextMsg")
-	register_message(get_user_msgid("SendAudio"), "message_SendAudio")
-	register_message(get_user_msgid("StatusIcon"), "message_StatusIcon")
+	register_message(get_user_msgid("TextMsg"), "Message_TextMsg")
+	register_message(get_user_msgid("SendAudio"), "Message_SendAudio")
+	register_message(get_user_msgid("StatusIcon"), "Message_StatusIcon")
+	register_message(get_user_msgid("HideWeapon"), "Message_HideWeapon")
 	
 	// Fakemeta
 	register_forward(FM_ClientKill, "Fw_ClientKill_Pre", 0)
@@ -21,7 +31,9 @@ public plugin_init()
 	RegisterHam(Ham_Touch, "armoury_entity", "Fw_TouchWeaponBox_Pre", 0)
 	
 	// Cvars
-	Cvar_iBlockKillCmd = register_cvar("ze_block_kill", "1")
+	g_pCvarBlockKillCmd = register_cvar("ze_block_kill", "1")
+	g_pCvarBlockMoneyHUD = register_cvar("ze_block_money_hud", "1")
+	g_pCvarBlockOtherHUD = register_cvar("ze_block_radar_ap_hp", "1")
 }
 
 public plugin_precache()
@@ -30,7 +42,7 @@ public plugin_precache()
 	g_iFwSpawn = register_forward(FM_Spawn, "Fw_Spawn")
 }
 
-public message_TextMsg()
+public Message_TextMsg()
 {
 	new szMsg[22]
 	get_msg_arg_string(2, szMsg, charsmax(szMsg))
@@ -42,37 +54,52 @@ public message_TextMsg()
 	return PLUGIN_CONTINUE
 }
 
-public message_SendAudio()
+public Message_SendAudio()
 {
 	new szAudio[17]
 	get_msg_arg_string(2, szAudio, charsmax(szAudio))
 	
 	// Block CS round win audio messages
-	if(equal(szAudio[7], "terwin") || equal(szAudio[7], "ctwin") || equal(szAudio[7], "rounddraw"))
+	if (equal(szAudio[7], "terwin") || equal(szAudio[7], "ctwin") || equal(szAudio[7], "rounddraw"))
 		return PLUGIN_HANDLED
 	
 	return PLUGIN_CONTINUE
 }
 
-public message_StatusIcon(Index, Dest, iEnt)
+public Message_StatusIcon(Index, Dest, iEnt)
 {
 	static szMsg[8]
 	get_msg_arg_string(2, szMsg ,charsmax(szMsg))
 	
 	// Block Buyzone
-	if(equal(szMsg, "buyzone") && get_msg_arg_int(1))
+	if (equal(szMsg, "buyzone") && get_msg_arg_int(1))
 	{
 		set_pdata_int(iEnt, 235, get_pdata_int(iEnt, 235) & ~(1<<0))
 		return PLUGIN_HANDLED
 	}
+	
 	return PLUGIN_CONTINUE
+}
+
+public Message_HideWeapon(Index, Dest, iEnt)
+{
+	if (get_pcvar_num(g_pCvarBlockMoneyHUD))
+	{
+		set_msg_arg_int(1, ARG_BYTE, get_msg_arg_int(1) | HUD_MONEY)
+	}
+	
+	if (get_pcvar_num(g_pCvarBlockOtherHUD))
+	{
+		set_msg_arg_int(1, ARG_BYTE, get_msg_arg_int(1) | HUD_RADAR_HEALTH_ARMOR)
+	}
 }
 
 public Fw_ClientKill_Pre(id)
 {
 	// Block Kill Command if enabled
-	if(get_pcvar_num(Cvar_iBlockKillCmd))
+	if (get_pcvar_num(g_pCvarBlockKillCmd))
 		return FMRES_SUPERCEDE
+	
 	return PLUGIN_CONTINUE
 }
 
@@ -92,16 +119,17 @@ public Fw_Spawn(iEnt)
 		engfunc(EngFunc_RemoveEntity, iEnt)
 		return FMRES_SUPERCEDE
 	}
+	
 	return FMRES_IGNORED
 }
 
 public Fw_TouchWeaponBox_Pre(iWeapon, iIndex)
 {
-	if(!is_user_alive(iIndex))
+	if (!is_user_alive(iIndex))
 		return HAM_IGNORED
 	
 	// Block Zombies From Pick UP Weapons
-	if(ze_is_user_zombie(iIndex))
+	if (ze_is_user_zombie(iIndex))
 		return HAM_SUPERCEDE
 	
 	return HAM_IGNORED

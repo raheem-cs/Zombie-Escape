@@ -9,6 +9,7 @@ new const ZE_SETTING_RESOURCES[] = "zombie_escape.ini"
 #define SOUND_MAX_LENGTH 64
 #define TASK_AMBIENCESOUND 2020
 #define TASK_REAMBIENCESOUND 5050
+#define ZOMBIE_CLAWS "zombie_knife"
 
 // Default Sounds
 new const szReadySound[][] = 
@@ -94,26 +95,49 @@ new const p_szHumanKnifeModel[][] =
 	"models/p_knife.mdl"
 }
 
+// Zombie claws
+new const WeaponList_SpriteSpr[] = "sprites/zombie_knife.spr"
+new const WeaponList_SpriteTxt[] = "sprites/zombie_knife.txt"
+
 // Dynamic Arrays: Sounds
-new Array:g_szReadySound, Array:g_szInfectSound, Array:g_szComingSound, Array:g_szPreReleaseSound,
-Array:g_szAmbianceSound, Array:g_szEscapeSuccessSound, Array:g_szEscapeFailSound
+new Array:g_szReadySound, 
+	Array:g_szInfectSound, 
+	Array:g_szComingSound, 
+	Array:g_szPreReleaseSound,
+	Array:g_szAmbianceSound, 
+	Array:g_szEscapeSuccessSound, 
+	Array:g_szEscapeFailSound
 
 // Dynamic Arrays: Models
-new Array:g_szHostZombieModel, Array:g_szOriginZombieModel, Array:g_v_szZombieKnifeModel,
-Array:g_v_szHumanKnifeModel, Array:g_p_szHumanKnifeModel
+new Array:g_szHostZombieModel,
+	Array:g_szOriginZombieModel,
+	Array:g_v_szZombieKnifeModel,
+	Array:g_v_szHumanKnifeModel, 
+	Array:g_p_szHumanKnifeModel
 
 // Variables
-new g_iMaxPlayers, g_pCvarReleaseTime
+new g_iMaxPlayers, 
+	g_pCvarReleaseTime,
+	g_iMsgIndexWeaponList
 
 public plugin_init()
 {
 	register_plugin("[ZE] Models & Sounds", ZE_VERSION, AUTHORS)
+	
+	// Hams
+	RegisterHam(Ham_Item_AddToPlayer, "weapon_knife", "Fw_AddItemToPlayer_Post", 1);
 	
 	// Max Players
 	g_iMaxPlayers = get_member_game(m_nMaxPlayers)
 	
 	// Pointers
 	g_pCvarReleaseTime = get_cvar_pointer("ze_release_time")
+
+	// Hook zombie knife
+	register_clcmd(ZOMBIE_CLAWS, "Hook_ZombieKnifeSelection")
+	
+	// Weapon list
+	g_iMsgIndexWeaponList = get_user_msgid("WeaponList")
 }
 
 public plugin_precache()
@@ -414,6 +438,10 @@ public plugin_precache()
 		ArrayGetString(g_p_szHumanKnifeModel, iIndex, szModel, charsmax(szModel))
 		precache_model(szModel)
 	}
+	
+	// Precache zombie claws
+	precache_generic(WeaponList_SpriteTxt)
+	precache_generic(WeaponList_SpriteSpr)
 }
 
 // Play Ready sound only if game started
@@ -456,22 +484,12 @@ public ze_user_infected(iVictim, iInfector)
 	// Random Model Set
 	switch(random_num(0, 130))
 	{
-		case 0..30:
+		case 0..30, 71..100:
 		{
 			ArrayGetString(g_szHostZombieModel, random_num(0, ArraySize(g_szHostZombieModel) - 1), szPlayerModel, charsmax(szPlayerModel))
 			rg_set_user_model(iVictim, szPlayerModel) // This native Faster 100000000000 times than one in fun module
 		}
-		case 31..70:
-		{
-			ArrayGetString(g_szOriginZombieModel, random_num(0, ArraySize(g_szOriginZombieModel) - 1), szPlayerModel, charsmax(szPlayerModel))
-			rg_set_user_model(iVictim, szPlayerModel)
-		}
-		case 71..100:
-		{
-			ArrayGetString(g_szHostZombieModel, random_num(0, ArraySize(g_szHostZombieModel) - 1), szPlayerModel, charsmax(szPlayerModel))
-			rg_set_user_model(iVictim, szPlayerModel)
-		}
-		case 101..130:
+		case 31..70, 101..130:
 		{
 			ArrayGetString(g_szOriginZombieModel, random_num(0, ArraySize(g_szOriginZombieModel) - 1), szPlayerModel, charsmax(szPlayerModel))
 			rg_set_user_model(iVictim, szPlayerModel)
@@ -548,7 +566,7 @@ public RePlayAmbianceSound()
 
 public ze_user_humanized(id)
 {
-	if(ze_is_user_zombie(id) || !is_user_alive(id))
+	if (ze_is_user_zombie(id) || !is_user_alive(id))
 		return
 	
 	// Rest Player Model (Model Randomly)
@@ -560,6 +578,9 @@ public ze_user_humanized(id)
 	cs_set_player_view_model(id, CSW_KNIFE, szModel)
 	ArrayGetString(g_p_szHumanKnifeModel, random_num(0, ArraySize(g_p_szHumanKnifeModel) - 1), szModel, charsmax(szModel))
 	cs_set_player_weap_model(id, CSW_KNIFE, szModel)
+	
+	// Reset the claws
+	WeaponList(id, 0)
 }
 
 public ze_roundend(WinTeam)
@@ -589,10 +610,45 @@ public ze_roundend(WinTeam)
 		
 		for(new id = 1; id <= g_iMaxPlayers; id++)
 		{
-			if(!is_user_connected(id))
+			if (!is_user_connected(id))
 				continue
 
 			PlaySound(id, szSound)
 		}
 	}
+}
+
+public Fw_AddItemToPlayer_Post(iItem, id)
+{
+	if (pev_valid(iItem) && is_user_alive(id) && ze_is_user_zombie(id))
+	{
+		// Show zombie claws when add knife to zombies
+		WeaponList(id, 1)
+	}
+}
+
+public Hook_ZombieKnifeSelection(id)
+{ 
+	if (!is_user_alive(id) || !ze_is_user_zombie(id))
+		return
+
+	engclient_cmd(id, "weapon_knife")
+}
+
+WeaponList(id, iMode = 0)
+{
+	if (!is_user_alive(id))
+		return
+	
+	message_begin(MSG_ONE, g_iMsgIndexWeaponList, {0, 0, 0}, id)
+	write_string(iMode ? ZOMBIE_CLAWS : "weapon_knife")
+	write_byte(-1)
+	write_byte(-1)
+	write_byte(-1)
+	write_byte(-1)
+	write_byte(2)
+	write_byte(1)
+	write_byte(CSW_KNIFE)
+	write_byte(0)
+	message_end()
 }

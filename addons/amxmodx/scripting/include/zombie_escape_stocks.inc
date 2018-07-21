@@ -366,36 +366,25 @@ stock AddCommas(iNum , szOutput[] , iLen)
 // Play Sound
 stock PlaySound(id, const sound[])
 {
-	if(id == 0)
+	if (equal(sound[strlen(sound)-4], ".mp3"))
 	{
-		if (equal(sound[strlen(sound)-4], ".mp3"))
-		{
-			client_cmd(0, "mp3 play ^"sound/%s^"", sound)
-		}
-		else
-		{
-			client_cmd(0, "spk ^"%s^"", sound)
-		}
+		client_cmd(id, "mp3 play ^"sound/%s^"", sound)
 	}
-	else if (is_user_connected(id))
+	else
 	{
-		if (equal(sound[strlen(sound)-4], ".mp3"))
-		{
-			client_cmd(id, "mp3 play ^"sound/%s^"", sound)
-		}
-		else
-		{
-			client_cmd(id, "spk ^"%s^"", sound)	
-		}
+		client_cmd(id, "spk ^"%s^"", sound)
 	}
 }
 
 // Stop Sound
 stock StopSound()
 {
-	client_cmd(0, "mp3 stop")
-	client_cmd(0, "spk stop")
-	client_cmd(0, "stopsound")
+	for(new id = 1; id <= get_member_game(m_nMaxPlayers); id++)
+	{
+		client_cmd(id, "mp3 stop")
+		client_cmd(id, "spk stop")
+		client_cmd(id, "stopsound")
+	}
 }
 
 // Set Glow
@@ -410,15 +399,6 @@ stock Set_Rendering(iEntity, fx = kRenderFxNone, r = 255, g = 255, b = 255, rend
 	set_entvar(iEntity, var_rendercolor, color)
 	set_entvar(iEntity, var_rendermode, render)
 	set_entvar(iEntity, var_renderamt, float(amount))
-}
-
-// Set Glow Float
-stock Set_Rendering_Float(entity, fx = kRenderFxNone, Float:color[3], render = kRenderNormal, Float:amount = 16.0)
-{
-	set_entvar(entity, var_renderfx, fx)
-	set_entvar(entity, var_rendercolor, color)
-	set_entvar(entity, var_rendermode, render)
-	set_entvar(entity, var_renderamt, amount)
 }
 
 // Multiply Vector by Scalar
@@ -439,4 +419,26 @@ stock Show_Given_BPAmmo(id, iAmmoType, iAmmount)
 	write_byte(iAmmoType)
 	write_byte(iAmmount)
 	message_end()
+}
+
+// Log MySQL Errors
+stock SQL_IsFail(iFailState, iError, szError[])
+{
+	if (iFailState == TQUERY_CONNECT_FAILED)
+	{
+		log_error(AMX_ERR_GENERAL, "[EC] Could not connect to SQL database.")
+		return true
+	}
+	else if (iFailState == TQUERY_QUERY_FAILED)
+	{
+		log_error(AMX_ERR_GENERAL, "[EC] Query failed: %s", szError)
+		return true
+	}
+	else if (iError)
+	{
+		log_error(AMX_ERR_GENERAL, "[EC] Error on query: %s", szError)
+		return true
+	}
+	
+	return false
 }

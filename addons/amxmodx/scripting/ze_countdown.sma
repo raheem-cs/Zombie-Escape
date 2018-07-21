@@ -7,7 +7,7 @@ new const ZE_SETTING_RESOURCES[] = "zombie_escape.ini"
 #define SOUND_MAX_LENGTH 64
 #define TASK_COUNTDOWN 2010
 
-// Default Countdown Sounds (This empety sound because of Zero-Based array system :) I don't have another idea)
+// Default Countdown Sounds
 new const szCountDownSound[][] =
 {
 	"zombie_escape/1.wav",
@@ -90,5 +90,5 @@ public Countdown_Start()
 		PlaySound(0, szSound)
 	}
 	
-	g_iCountDown --
+	g_iCountDown--
 }

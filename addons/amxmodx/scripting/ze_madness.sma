@@ -22,10 +22,20 @@ new Array:g_szZombie_Madness_Sound
 #define ID_AURA (taskid - TASK_AURA)
 
 // Variables
-new g_iItemID, bool:g_bZombieInMadness[33]
+new g_iItemID, 
+	bool:g_bZombieInMadness[33]
 
 // Cvars
-new Cvar_Madness_Time, Cvar_Madness_Aura_Red, Cvar_Madness_Aura_Green, Cvar_Madness_Aura_Blue
+new g_pCvarMadnessTime, 
+	g_pCvarMadnessAuraColors[3]
+	
+// Colors
+enum
+{
+	Red = 0,
+	Green,
+	Blue
+}
 
 public plugin_init()
 {
@@ -40,10 +50,10 @@ public plugin_init()
 	g_iItemID = ze_register_item("Zombie Madness", 50, 0)
 	
 	// Cvars
-	Cvar_Madness_Time = register_cvar("ze_madness_time", "5.0")
-	Cvar_Madness_Aura_Red = register_cvar("ze_madness_color_red", "255")
-	Cvar_Madness_Aura_Green = register_cvar("ze_madness_color_green", "0")
-	Cvar_Madness_Aura_Blue = register_cvar("ze_madness_color_blue", "0")
+	g_pCvarMadnessTime = register_cvar("ze_madness_time", "5.0")
+	g_pCvarMadnessAuraColors[Red] = register_cvar("ze_madness_color_red", "255")
+	g_pCvarMadnessAuraColors[Green] = register_cvar("ze_madness_color_green", "0")
+	g_pCvarMadnessAuraColors[Blue] = register_cvar("ze_madness_color_blue", "0")
 }
 
 public plugin_precache()
@@ -116,7 +126,7 @@ public ze_select_item_post(id, itemid)
 	emit_sound(id, CHAN_VOICE, szSound, 1.0, ATTN_NORM, 0, PITCH_NORM)
 	
 	// Set task to remove it
-	set_task(get_pcvar_float(Cvar_Madness_Time), "Remove_Zombie_Madness", id+TASK_MADNESS)
+	set_task(get_pcvar_float(g_pCvarMadnessTime), "Remove_Zombie_Madness", id+TASK_MADNESS)
 }
 
 // Player Spawn
@@ -209,9 +219,9 @@ public Madness_Aura(taskid)
 	write_coord(origin[1]) // y
 	write_coord(origin[2]) // z
 	write_byte(20) // radius
-	write_byte(get_pcvar_num(Cvar_Madness_Aura_Red)) // r
-	write_byte(get_pcvar_num(Cvar_Madness_Aura_Green)) // g
-	write_byte(get_pcvar_num(Cvar_Madness_Aura_Blue)) // b
+	write_byte(get_pcvar_num(g_pCvarMadnessAuraColors[Red])) // r
+	write_byte(get_pcvar_num(g_pCvarMadnessAuraColors[Green])) // g
+	write_byte(get_pcvar_num(g_pCvarMadnessAuraColors[Blue])) // b
 	write_byte(2) // life
 	write_byte(0) // decay rate
 	message_end()
@@ -221,9 +231,16 @@ public native_ze_zombie_in_madness(id)
 {
 	if (!is_user_alive(id))
 	{
-		// Throw Error and return false if player isn't alive
+		// Throw Error and return -1 if player isn't alive
 		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player (%d)", id)
-		return false
+		return -1;
+	}
+	
+	if (!is_user_alive(id))
+	{
+		// Throw Error and return -1 if player isn't alive
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player, not Zombie (%d)", id)
+		return -1;
 	}
 	
 	return g_bZombieInMadness[id]

@@ -40,8 +40,11 @@ new const szZombieDieSound[][] =
 #define SOUND_MAX_LENGTH 64
 
 // Dynamic Arrays
-new Array:g_szZombiePainSound, Array:g_szZombieMissSlashSound, Array:g_szZombieMissWallSound,
-Array:g_szZombieAttackSound, Array:g_szZombieDieSound
+new Array:g_szZombiePainSound, 
+	Array:g_szZombieMissSlashSound, 
+	Array:g_szZombieMissWallSound,
+	Array:g_szZombieAttackSound,
+	Array:g_szZombieDieSound
 
 public plugin_init()
 {

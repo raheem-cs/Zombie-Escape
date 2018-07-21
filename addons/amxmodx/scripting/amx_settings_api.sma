@@ -45,7 +45,7 @@ public native_load_setting_string_arr(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty filename")
 		return false;
 	}
 	
@@ -55,7 +55,7 @@ public native_load_setting_string_arr(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty section/key")
 		return false;
 	}
 	
@@ -63,7 +63,7 @@ public native_load_setting_string_arr(plugin_id, num_params)
 	
 	if (array_handle == Invalid_Array)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Array not initialized")
+		log_error(AMX_ERR_NATIVE, "[ZE] Array not initialized")
 		return false;
 	}
 	
@@ -172,7 +172,7 @@ public native_save_setting_string_arr(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty filename")
 		return false;
 	}
 	
@@ -182,7 +182,7 @@ public native_save_setting_string_arr(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty section/key")
 		return false;
 	}
 	
@@ -190,7 +190,7 @@ public native_save_setting_string_arr(plugin_id, num_params)
 	
 	if (array_handle == Invalid_Array)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Array not initialized")
+		log_error(AMX_ERR_NATIVE, "[ZE] Array not initialized")
 		return false;
 	}
 	
@@ -366,7 +366,7 @@ public native_load_setting_int_arr(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty filename")
 		return false;
 	}
 	
@@ -376,7 +376,7 @@ public native_load_setting_int_arr(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty section/key")
 		return false;
 	}
 	
@@ -384,7 +384,7 @@ public native_load_setting_int_arr(plugin_id, num_params)
 	
 	if (array_handle == Invalid_Array)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Array not initialized")
+		log_error(AMX_ERR_NATIVE, "[ZE] Array not initialized")
 		return false;
 	}
 	
@@ -493,7 +493,7 @@ public native_save_setting_int_arr(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty filename")
 		return false;
 	}
 	
@@ -503,7 +503,7 @@ public native_save_setting_int_arr(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty section/key")
 		return false;
 	}
 	
@@ -511,7 +511,7 @@ public native_save_setting_int_arr(plugin_id, num_params)
 	
 	if (array_handle == Invalid_Array)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Array not initialized")
+		log_error(AMX_ERR_NATIVE, "[ZE] Array not initialized")
 		return false;
 	}
 	
@@ -679,7 +679,7 @@ public native_load_setting_float_arr(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty filename")
 		return false;
 	}
 	
@@ -689,7 +689,7 @@ public native_load_setting_float_arr(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty section/key")
 		return false;
 	}
 	
@@ -697,7 +697,7 @@ public native_load_setting_float_arr(plugin_id, num_params)
 	
 	if (array_handle == Invalid_Array)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Array not initialized")
+		log_error(AMX_ERR_NATIVE, "[ZE] Array not initialized")
 		return false;
 	}
 	
@@ -806,7 +806,7 @@ public native_save_setting_float_arr(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty filename")
 		return false;
 	}
 	
@@ -816,7 +816,7 @@ public native_save_setting_float_arr(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty section/key")
 		return false;
 	}
 	
@@ -824,7 +824,7 @@ public native_save_setting_float_arr(plugin_id, num_params)
 	
 	if (array_handle == Invalid_Array)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Array not initialized")
+		log_error(AMX_ERR_NATIVE, "[ZE] Array not initialized")
 		return false;
 	}
 	
@@ -992,7 +992,7 @@ public native_load_setting_string(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty filename")
 		return false;
 	}
 	
@@ -1002,7 +1002,7 @@ public native_load_setting_string(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty section/key")
 		return false;
 	}
 	
@@ -1104,7 +1104,7 @@ public native_save_setting_string(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty filename")
 		return false;
 	}
 	
@@ -1114,7 +1114,7 @@ public native_save_setting_string(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty section/key")
 		return false;
 	}
 	
@@ -1275,7 +1275,7 @@ public native_load_setting_int(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty filename")
 		return false;
 	}
 	
@@ -1285,7 +1285,7 @@ public native_load_setting_int(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty section/key")
 		return false;
 	}
 	
@@ -1386,7 +1386,7 @@ public native_save_setting_int(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty filename")
 		return false;
 	}
 	
@@ -1396,7 +1396,7 @@ public native_save_setting_int(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty section/key")
 		return false;
 	}
 	
@@ -1553,7 +1553,7 @@ public native_load_setting_float(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty filename")
 		return false;
 	}
 	
@@ -1563,7 +1563,7 @@ public native_load_setting_float(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't load settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't load settings: empty section/key")
 		return false;
 	}
 	
@@ -1664,7 +1664,7 @@ public native_save_setting_float(plugin_id, num_params)
 	
 	if (strlen(filename) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty filename")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty filename")
 		return false;
 	}
 	
@@ -1674,7 +1674,7 @@ public native_save_setting_float(plugin_id, num_params)
 	
 	if (strlen(setting_section) < 1 || strlen(setting_key) < 1)
 	{
-		log_error(AMX_ERR_NATIVE, "[ZP] Can't save settings: empty section/key")
+		log_error(AMX_ERR_NATIVE, "[ZE] Can't save settings: empty section/key")
 		return false;
 	}
 	

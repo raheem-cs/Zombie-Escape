@@ -19,6 +19,9 @@ public plugin_init()
 
 public Cmd_ChooseTeam(id)
 {
+	if (!is_user_connected(id))
+		return PLUGIN_CONTINUE;
+	
 	if (get_member(id, m_iTeam) == TEAM_TERRORIST || get_member(id, m_iTeam) == TEAM_CT)
 	{
 		Show_Menu_Main(id)
@@ -39,13 +42,21 @@ public Show_Menu_Main(id)
 	iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\w%L^n^n", id, "MAIN_MENU_TITLE")
 	
 	// 1. Buy Weapons
-	if (is_user_alive(id))
+	if (!ze_is_auto_buy_enabled(id)) // AutoBuy not enabled - normal case
 	{
-		iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\w1.\r %L^n", id, "MENU_WEAPONBUY")
+		if (is_user_alive(id))
+		{
+			iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\w1.\r %L^n", id, "MENU_WEAPONBUY")
+		}
+		else
+		{
+			iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\d1. %L^n", id, "MENU_WEAPONBUY")
+		}
 	}
 	else
 	{
-		iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\d1. %L^n", id, "MENU_WEAPONBUY")
+		// Auto-Buy enabled - Re-enable case
+		iLen += formatex(szMenu[iLen], charsmax(szMenu) - iLen, "\w1.\r %L^n", id, "MENU_WEAPONBUY_RE_ENABLE")
 	}
 	
 	// 2. Extra Items
@@ -77,7 +88,15 @@ public Main_Menu(id, key)
 	{
 		case 0: // Buy Weapons
 		{
-			client_cmd(id, "guns")
+			if (!ze_is_auto_buy_enabled(id))
+			{
+				ze_show_weapon_menu(id)
+			}
+			else
+			{
+				ze_disable_auto_buy(id)
+				Show_Menu_Main(id)
+			}
 		}
 		case 1: // Extra Items
 		{
