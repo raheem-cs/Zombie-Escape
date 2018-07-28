@@ -115,7 +115,7 @@ public plugin_init()
 	// Create Forwards (All Return Values Ignored)
 	g_iForwards[FORWARD_ROUNDEND] = CreateMultiForward("ze_roundend", ET_IGNORE, FP_CELL)
 	g_iForwards[FORWARD_HUMANIZED] = CreateMultiForward("ze_user_humanized", ET_IGNORE, FP_CELL)
-	g_iForwards[FORWARD_PRE_INFECTED] = CreateMultiForward("ze_user_infected_pre", ET_CONTINUE, FP_CELL, FP_CELL)
+	g_iForwards[FORWARD_PRE_INFECTED] = CreateMultiForward("ze_user_infected_pre", ET_CONTINUE, FP_CELL, FP_CELL, FP_CELL)
 	g_iForwards[FORWARD_INFECTED] = CreateMultiForward("ze_user_infected", ET_IGNORE, FP_CELL, FP_CELL)
 	g_iForwards[FORWARD_ZOMBIE_APPEAR] = CreateMultiForward("ze_zombie_appear", ET_IGNORE)
 	g_iForwards[FORWARD_ZOMBIE_RELEASE] = CreateMultiForward("ze_zombie_release", ET_IGNORE)
@@ -437,19 +437,20 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 	if (g_bIsZombieFrozen[iVictim] || g_bIsZombieFrozen[iAttacker])
 		return HC_SUPERCEDE
 	
+	// Execute pre-infection forward
+	ExecuteForward(g_iForwards[FORWARD_PRE_INFECTED], g_iFwReturn, iVictim, iAttacker, floatround(flDamage))
+	
+	if (g_iFwReturn > 0)
+	{
+		return HC_SUPERCEDE
+	}
+	
 	g_iAliveHumansNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
 	
 	if (g_bIsZombie[iAttacker])
 	{
 		// Death Message with Infection style [Added here because of delay in Forward use]
 		SendDeathMsg(iAttacker, iVictim)
-		
-		ExecuteForward(g_iForwards[FORWARD_PRE_INFECTED], g_iFwReturn, iVictim, iAttacker)
-		
-		if (g_iFwReturn > 0)
-		{
-			return HC_CONTINUE
-		}
 		
 		Set_User_Zombie(iVictim)
 		

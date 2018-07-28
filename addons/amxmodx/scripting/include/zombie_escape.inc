@@ -62,6 +62,7 @@ forward ze_user_humanized(id);
 *
 * @param iVictim	Victim index, human who will catch the infection.
 * @param iInfector	Infector index, zombie who will cause the infection.
+* @param iDamage	The blocked damage value.
 *
 * @return			To stop the infection event use:   return 1
 *					To let the infection continue use: return 0
@@ -72,7 +73,7 @@ forward ze_user_humanized(id);
 *					Basically return > 0  will stop the infection.
 *			
 */
-forward ze_user_infected_pre(iVictim, iInfector);
+forward ze_user_infected_pre(iVictim, iInfector, iDamage);
 
 /*
 * Description:		Called when user infected by player or by the server.
