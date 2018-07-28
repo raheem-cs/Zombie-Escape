@@ -223,7 +223,7 @@ LoadCoins(id)
 	}
 	else
 	{
-		new szQuery[128], szData[2]
+		new szQuery[128], szData[5]
 		formatex(szQuery, charsmax(szQuery), "SELECT `Player EC` FROM `Escape_Coins` WHERE ( `Player SteamID` = '%s' );", szAuthID)
      
 		num_to_str(id, szData, charsmax(szData))
