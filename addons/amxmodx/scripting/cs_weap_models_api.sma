@@ -12,6 +12,7 @@
 #include <cstrike>
 #include <fakemeta>
 #include <hamsandwich>
+#include <reapi>
 
 #define MAXPLAYERS 32
 #define CSW_FIRST_WEAPON CSW_P228
@@ -321,7 +322,7 @@ public fw_Item_Deploy_Post(weapon_ent)
 	{
 		new view_model[128]
 		ArrayGetString(g_CustomViewModelsNames, g_CustomViewModelsPosition[owner][weaponid], view_model, charsmax(view_model))
-		set_pev(owner, pev_viewmodel2, view_model)
+		set_entvar(owner, var_viewmodel, view_model)
 	}
 	
 	// Custom weapon model?
@@ -329,7 +330,7 @@ public fw_Item_Deploy_Post(weapon_ent)
 	{
 		new weapon_model[128]
 		ArrayGetString(g_CustomWeaponModelsNames, g_CustomWeaponModelsPosition[owner][weaponid], weapon_model, charsmax(weapon_model))
-		set_pev(owner, pev_weaponmodel2, weapon_model)
+		set_entvar(owner, var_weaponmodel, weapon_model)
 	}
 }
 
