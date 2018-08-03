@@ -278,6 +278,19 @@ public New_Round()
 {
 	remove_task(TASK_FREEZE)
 	g_bZombieReleased = false
+	
+	// Set w_ models for grenades on ground
+	new szModel[32], iEntity = -1;
+
+	while((iEntity = rg_find_ent_by_class( iEntity, "armoury_entity")))
+	{
+		get_entvar(iEntity, var_model, szModel, charsmax(szModel))
+		
+		if (equali(szModel, "models/w_flashbang.mdl") || equali(szModel, "models/w_smokegrenade.mdl"))
+		{
+			engfunc(EngFunc_SetModel, iEntity, g_w_szFrostGrenadeModel)
+		}
+	}
 }
 
 public Fw_TraceAttack_Pre(iVictim, iAttacker)

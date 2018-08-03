@@ -68,6 +68,9 @@ public plugin_init()
 	// Hook Chains
 	RegisterHookChain(RG_CBasePlayer_Killed, "Fw_PlayerKilled_Post", 1)
 	
+	// Events
+	register_event("HLTV", "New_Round", "a", "1=0", "2=0")
+	
 	// Fakemeta
 	register_forward(FM_SetModel, "Fw_SetModel_Post")
 	
@@ -222,6 +225,22 @@ public ze_user_humanized(id)
 	
 	cs_set_player_view_model(id, CSW_HEGRENADE, g_v_szModelFireGrenade)
 	cs_set_player_weap_model(id, CSW_HEGRENADE, g_p_szModelFireGrenade)
+}
+
+public New_Round()
+{
+	// Set w_ models for grenades on ground
+	new szModel[32], iEntity = -1;
+
+	while((iEntity = rg_find_ent_by_class( iEntity, "armoury_entity")))
+	{
+		get_entvar(iEntity, var_model, szModel, charsmax(szModel))
+		
+		if (equali(szModel, "models/w_hegrenade.mdl"))
+		{
+			engfunc(EngFunc_SetModel, iEntity, g_w_szModelFireGrenade)
+		}
+	}
 }
 
 public Fw_PlayerKilled_Post(iVictim, iAttacker)
