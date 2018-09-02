@@ -422,21 +422,21 @@ stock Show_Given_BPAmmo(id, iAmmoType, iAmmount)
 }
 
 // Log MySQL Errors
-stock SQL_IsFail(iFailState, iError, szError[])
+stock SQL_IsFail(iFailState, iError, szError[], const szLogFile[])
 {
 	if (iFailState == TQUERY_CONNECT_FAILED)
 	{
-		log_error(AMX_ERR_GENERAL, "[EC] Could not connect to SQL database.")
+		log_to_file(szLogFile, "[MySQL] Could not connect to SQL database: %s", szError)
 		return true
 	}
 	else if (iFailState == TQUERY_QUERY_FAILED)
 	{
-		log_error(AMX_ERR_GENERAL, "[EC] Query failed: %s", szError)
+		log_to_file(szLogFile, "[MySQL] Query failed: %s", szError)
 		return true
 	}
 	else if (iError)
 	{
-		log_error(AMX_ERR_GENERAL, "[EC] Error on query: %s", szError)
+		log_to_file(szLogFile, "[MySQL] Error on query: %s", szError)
 		return true
 	}
 	

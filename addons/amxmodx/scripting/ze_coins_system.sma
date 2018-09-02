@@ -2,9 +2,18 @@
 
 // Static (Change it if you need)
 new const g_szVaultName[] = "Escape_Coins"
+new const g_szLogFile[] = "Escape-Coins.log" // MySQL Errors log file
 
 // MySQL Table
-new const g_szTable[] = "CREATE TABLE IF NOT EXISTS `Escape_Coins` ( `Player SteamID` varchar(34) NOT NULL,`Player EC` int(16) NOT NULL,PRIMARY KEY (`Player SteamID`) );"
+new const g_szTable[] = 
+" \
+	CREATE TABLE IF NOT EXISTS `Escape_Coins` \
+	( \
+		`SteamID` varchar(34) NOT NULL, \
+		`EC` int(16) NOT NULL, \
+		PRIMARY KEY (`SteamID`) \
+	); \
+"
 
 // Variables
 new g_iMaxClients,
@@ -115,7 +124,7 @@ public MySQL_Init()
 
 public QueryCreateTable(iFailState, Handle:hQuery, szError[], iError, szData[], iSize, Float:flQueueTime) 
 {
-	SQL_IsFail(iFailState, iError, szError)
+	SQL_IsFail(iFailState, iError, szError, g_szLogFile)
 }
 
 public client_putinserver(id) 
@@ -242,7 +251,7 @@ LoadCoins(id)
 	else
 	{
 		new szQuery[128], szData[5]
-		formatex(szQuery, charsmax(szQuery), "SELECT `Player EC` FROM `Escape_Coins` WHERE ( `Player SteamID` = '%s' );", szAuthID)
+		formatex(szQuery, charsmax(szQuery), "SELECT `EC` FROM `Escape_Coins` WHERE ( `SteamID` = '%s' );", szAuthID)
      
 		num_to_str(id, szData, charsmax(szData))
 		SQL_ThreadQuery(g_hTuple, "QuerySelectData", szQuery, szData, charsmax(szData))
@@ -251,7 +260,7 @@ LoadCoins(id)
 
 public QuerySelectData(iFailState, Handle:hQuery, szError[], iError, szData[]) 
 {
-	if(SQL_IsFail(iFailState, iError, szError))
+	if(SQL_IsFail(iFailState, iError, szError, g_szLogFile))
 		return
 	
 	new id = str_to_num(szData)
@@ -261,15 +270,30 @@ public QuerySelectData(iFailState, Handle:hQuery, szError[], iError, szData[])
 	{
 		// This is new player
 		g_iEscapeCoins[id] = get_pcvar_num(g_pCvarStartCoins)
-		SaveCoins(id)
+		
+		// Get user steamid
+		new szAuthID[35]
+		get_user_authid(id, szAuthID, charsmax(szAuthID))
+		
+		// Insert his data to our database
+		new szQuery[128]
+		
+		formatex(szQuery, charsmax(szQuery), "INSERT INTO `Escape_Coins` (`SteamID`, `EC`) VALUES ('%s', '%d');", szAuthID, g_iEscapeCoins[id])
+		SQL_ThreadQuery(g_hTuple, "QueryInsertData", szQuery)
+		
 		return
 	}
 	
-	// Get the "Player EC" column number (It's 2, always i don't like to hardcode :p)
-	new iEC_Column = SQL_FieldNameToNum(hQuery, "Player EC")
+	// Get the "EC" column number (It's 2, always i don't like to hardcode :p)
+	new iEC_Column = SQL_FieldNameToNum(hQuery, "EC")
 	
 	// Read the coins of this player
 	g_iEscapeCoins[id] = SQL_ReadResult(hQuery, iEC_Column)
+}
+
+public QueryInsertData(iFailState, Handle:hQuery, szError[], iError, szData[], iSize, Float:flQueueTime)
+{
+	SQL_IsFail(iFailState, iError, szError, g_szLogFile)
 }
 
 SaveCoins(id)
@@ -301,14 +325,14 @@ SaveCoins(id)
 	else
 	{
 		new szQuery[128]
-		formatex(szQuery, charsmax(szQuery), "REPLACE INTO `Escape_Coins` (`Player SteamID`, `Player EC`) VALUES ('%s', '%d');", szAuthID, g_iEscapeCoins[id])
-		SQL_ThreadQuery(g_hTuple, "QuerySetData", szQuery)
+		formatex(szQuery, charsmax(szQuery), "UPDATE `Escape_Coins` SET `EC` = '%d' WHERE `SteamID` = '%s';", g_iEscapeCoins[id], szAuthID)
+		SQL_ThreadQuery(g_hTuple, "QueryUpdateData", szQuery)
 	}
 }
 
-public QuerySetData(iFailState, Handle:hQuery, szError[], iError, szData[], iSize, Float:flQueueTime) 
+public QueryUpdateData(iFailState, Handle:hQuery, szError[], iError, szData[], iSize, Float:flQueueTime) 
 {
-	SQL_IsFail(iFailState, iError, szError)
+	SQL_IsFail(iFailState, iError, szError, g_szLogFile)
 }
 
 // Natives
