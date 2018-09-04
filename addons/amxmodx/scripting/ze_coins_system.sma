@@ -79,13 +79,18 @@ public plugin_init()
 	g_pCvarDBInfo[Pass] = register_cvar("ze_ec_pass", "pass")
 	g_pCvarDBInfo[DB] = register_cvar("ze_ec_dbname", "dbname")
 	
-	// Initialize MySQL
-	MySQL_Init()
+	// Initialize MySQL - Delay 0.1 second required so we make sure that our zombie_escape.cfg already executed and cvars values loaded from it
+	set_task(0.1, "Delay_MySQL_Init")
 }
 
 public Coins_Info(id)
 {
 	ze_colored_print(id, "%L", LANG_PLAYER, "COINS_INFO", g_iEscapeCoins[id])
+}
+
+public Delay_MySQL_Init()
+{
+	MySQL_Init()
 }
 
 public MySQL_Init()
