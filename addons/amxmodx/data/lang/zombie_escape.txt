@@ -1,7 +1,7 @@
 [en]
 NO_ENOUGH_PLAYERS = !tNo Enough Players!y. !tRequired!y: !t%i!y.
 RUN_NOTICE = Ready for Run. Run After %i Second(s) !
-ZOMBIE_RELEASE = Zombie Will Be Released After: %i Second(s) !
+ZOMBIE_RELEASE = Zombie(s) Will Be Released After: %i Second(s) !
 READY_TO_RUN = !tAre you Ready to Run!y? !gGood Luck !y:)
 ESCAPE_SUCCESS = Escape Success!
 ESCAPE_FAIL = Escape Fail!
@@ -59,4 +59,130 @@ NO_EXTRA_ITEMS = !tNo extra items are currently available to you!y.
 
 ITEM_LIMIT = \w[\r%i\d|\r%i\w]
 ITEM_LEVEL = \w[\rLevel\d: \r%i\w]
+ITEM_VIP = \w(\rVIP\w)
+
+[bp]
+NO_ENOUGH_PLAYERS = !tFalta jogadores!y. !tNecessario!y: !t%i!y.
+RUN_NOTICE = Pronto pra Fugir?. Falta apenas %i segundos !
+ZOMBIE_RELEASE = Zumbis liberados em: %i Segundos !
+READY_TO_RUN = !tPronto para fugir!y? !gBoa Sorte !y:)
+ESCAPE_SUCCESS = Fugiram com sucesso!
+ESCAPE_FAIL = Falharam na fuga!
+START_GAME = Iniciando a Partida!
+INFECTION_NOTICE = %s foi infectado %s !
+SCORE_MESSAGE = Zombis VS Humanos^n %i --------- %i
+NO_WINNER = Voce perdeu!
+RANK_INFO = [MESTRE DE SOBREVIVENCIA]^n[1°] - %s^n[2°] - %s^n[3°] - %s
+RANK_INFO_LEADER = [Lider da Fuga]^n%s
+
+COINS_INFO = !tSeus Coins!y: !g%i
+ESCAPE_SUCCESS_COINS = !tConseguiram Fugir!y: !t+!g%i !tEscape Coins!y!
+HUMAN_INFECTED_COINS = !tInfectou Humano!y: !t+!g%i !tEscape Coins!y!
+
+ZOMBIE_SPEC = Assistindo: %s^nHP: %i^nClasse: Zombi^nEscape Coins: %i
+ZOMBIE_SPEC_COMMAS = Assistindo: %s^nHP: %s^nClasse: Zombi^nEscape Coins: %i
+
+HUMAN_SPEC = Assistindo: %s^nHP: %i^nClasse: Humano^nEscape Coins: %i
+HUMAN_SPEC_COMMAS = Assistindo: %s^nHP: %s^nClasse: Humano^nEscape Coins: %i
+
+HUMAN_SPEC_LEADER = Assistindo: %s^nHP: %i^nClasse: Lider da Fuga^nEscape Coins: %i
+HUMAN_SPEC_COMMAS_LEADER = Assistindo: %s^nHP: %s^nClasse: Lider da Fuga^nEscape Coins: %i
+
+ZOMBIE = HP: %i | Classe: Zombi | Escape Coins: %i
+ZOMBIE_COMMAS = HP: %s | Classe: Zombi | Escape Coins: %i
+
+HUMAN_LEADER = HP: %i | Classe: Lider da Fuga | Escape Coins: %i
+HUMAN_LEADER_COMMAS = HP: %s | Classe: Lider da Fuga | Escape Coins: %i
+
+HUMAN = HP: %i | Classe: Humano | Escape Coins: %i
+HUMAN_COMMAS = HP: %s | Classe: Humano | Escape Coins: %i
+
+BUY_ENABLED = !tSeu menu foi reativado!y.
+RE_ENABLE_MENU = !tdigite /enable ou aperte M para ativar seu menu de compras!y.
+ALREADY_BOUGHT = !tVocê já comprou Armas Primárias e Secundárias!y!
+DEAD_CANT_BUY_WEAPON = !tMorto não pode comprar Armas Primárias e Secundárias!y.
+NO_BUY_ZOMBIE = !tVocê não pode comprar pois é zumbi!y.
+BUY_MENU_TIME_EXPIRED = !tO tempo de compra expirou!y.
+MENU_PRIMARY_TITLE = Armas Primárias
+MENU_SECONDARY_TITLE = Armas Secundárias
+MENU_AUTOSELECT = Relembrar?
+SAVE_YES = Sim
+SAVE_NO = Nao
+NEXT = Proximo
+BACK = Volta
+EXIT = Sair
+
+MAIN_MENU_TITLE = [ZE] Menu Principal
+MENU_EXTRABUY = Comprar Itens Especiais
+MENU_WEAPONBUY = Comprar Armas
+MENU_WEAPONBUY_RE_ENABLE = Reabilite as armas compradas
+
+BUY_EXTRAITEM = Extra Itens
+NO_EXTRA_ITEMS = !tNão há itens extras disponíveis para você!y.
+
+ITEM_LIMIT = \w[\r%i\d|\r%i\w]
+ITEM_LEVEL = \w[\rLevel\d: \r%i\w]
+ITEM_VIP = \w(\rVIP\w)
+
+[pl]
+NO_ENOUGH_PLAYERS = !tBrak wystarczjacej liczby graczy!y. !tWymagana liczba!y: !t%i!y.
+RUN_NOTICE = Gotowy do ucieczki. Biegnij po %i sekundach !
+ZOMBIE_RELEASE = Zombie zostanie wypuszczone za: %i sekund !
+READY_TO_RUN = !tGotowy do ucieczki!y? !gPOWODZENIA !y:)
+ESCAPE_SUCCESS = Udana ucieczka!
+ESCAPE_FAIL = Nieudana ucieczka!
+START_GAME = Rozpoczecie gry!
+INFECTION_NOTICE = %s zarazil %s !
+SCORE_MESSAGE = Zombie VS Ludzie^n %i --------- %i
+NO_WINNER = Remis!
+RANK_INFO = [Mistrz przetrwania]^n[1st] - %s^n[2nd] - %s^n[3rd] - %s
+RANK_INFO_LEADER = [LIDER UCIECZKI]^n%s
+
+COINS_INFO = !tTwoja aktualna ilosc monet!y: !g%i
+ESCAPE_SUCCESS_COINS = !tUdana ucieczka!y: !t+!g%i !tmonet!y!
+HUMAN_INFECTED_COINS = !tZarazono czlowieka!y: !t+!g%i !tmonet!y!
+
+ZOMBIE_SPEC = Spectating: %s^nHP: %i^nKlasa: Zombie^nIlosc monet: %i
+ZOMBIE_SPEC_COMMAS = Spectating: %s^nHP: %s^nKlasa: Zombie^nIlosc monet: %i
+
+HUMAN_SPEC = Ogladanie: %s^nHP: %i^nKlasa: Czlowiek^nIlosc monet: %i
+HUMAN_SPEC_COMMAS = Ogladanie: %s^nHP: %s^nKlasa: Czlowiek^nIlosc monet: %i
+
+HUMAN_SPEC_LEADER = Ogladanie: %s^nHP: %i^nKlasa: Escape Lider^nIlosc monet: %i
+HUMAN_SPEC_COMMAS_LEADER = Ogladanie: %s^nHP: %s^nKlasa: Escape Lider^nIlosc monet: %i
+
+ZOMBIE = HP: %i | Klasa: Zombie | Ilosc monet: %i
+ZOMBIE_COMMAS = HP: %s | Klasa: Zombie | Ilosc monet: %i
+
+HUMAN_LEADER = HP: %i | Klasa: Escape Lider| Ilosc monet: %i
+HUMAN_LEADER_COMMAS = HP: %s | Klasa: Escape Lider | Ilosc monet: %i
+
+HUMAN = HP: %i | Klasa: Czlowiek | Ilosc monet: %i
+HUMAN_COMMAS = HP: %s | Class: Human | Escape Coins: %i
+
+BUY_ENABLED = !tYour menu has been re-enabled!y.
+RE_ENABLE_MENU = !tsay /enable or press M to enable your buy menu!y.
+ALREADY_BOUGHT = !tJuz kupiles bron!y!
+DEAD_CANT_BUY_WEAPON = !tNie mozesz kupic broni, kiedy jestes martwy!y.
+NO_BUY_ZOMBIE = !tNie mozesz kupic broni, kiedy jestes Zombie!y.
+BUY_MENU_TIME_EXPIRED = !tCzas kupowania broni sie skonczyl!y.
+MENU_PRIMARY_TITLE = Bron podstawowa
+MENU_SECONDARY_TITLE = Bron dodatkowa
+MENU_AUTOSELECT = Zapamietac?
+SAVE_YES = Tak
+SAVE_NO = Nie
+NEXT = Nastepny
+BACK = Powrot
+EXIT = Wyjscie
+
+MAIN_MENU_TITLE = [ZE] Glowne Menu
+MENU_EXTRABUY = Kup dodatkowe przedmioty
+MENU_WEAPONBUY = Kup bronie
+MENU_WEAPONBUY_RE_ENABLE = Wlacz ponowne kupowanie broni
+
+BUY_EXTRAITEM = Dodatkowe przedmioty
+NO_EXTRA_ITEMS = !tAktulanie dodatkowe przedmioty nie sa dostepne!y.
+
+ITEM_LIMIT = \w[\r%i\d|\r%i\w]
+ITEM_LEVEL = \w[\rPoziom\d: \r%i\w]
 ITEM_VIP = \w(\rVIP\w)
