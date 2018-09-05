@@ -787,7 +787,7 @@ public native_ze_set_human_speed_factor(id, iFactor)
 	
 	g_bHSpeedUsed[id] = true
 	g_iHSpeedFactor[id] = iFactor
-	ExecuteHamB(Ham_Item_PreFrame, id)
+	rg_reset_maxspeed(id)
 	return true;
 }
 
@@ -800,7 +800,7 @@ public native_ze_reset_human_speed(id)
 	}
 	
 	g_bHSpeedUsed[id] = false
-	ExecuteHamB(Ham_Item_PreFrame, id)
+	rg_reset_maxspeed(id)
 	return true;
 }
 
