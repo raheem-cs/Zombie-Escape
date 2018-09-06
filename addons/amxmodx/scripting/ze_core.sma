@@ -70,7 +70,11 @@ new	g_pCvarHumanSpeedFactor,
 	g_pCvarZombieKnockback, 
 	g_pCvarScoreMessageType, 
 	g_pCvarColors[3],
-	g_pCvarRoundEndDelay
+	g_pCvarRoundEndDelay,
+	g_pCvarSmartRandom
+	
+// Dynamic Arrays
+new Array:g_aChosenPlayers
 
 public plugin_natives()
 {
@@ -149,6 +153,7 @@ public plugin_init()
 	g_pCvarColors[Green] = register_cvar("ze_score_message_green", "100")
 	g_pCvarColors[Blue] = register_cvar("ze_score_message_blue", "0")
 	g_pCvarRoundEndDelay = register_cvar("ze_round_end_delay", "5")
+	g_pCvarSmartRandom = register_cvar("ze_smart_random", "1")
 	
 	// Default Values
 	g_bGameStarted = false
@@ -175,6 +180,18 @@ public plugin_cfg()
 	// Set Version
 	register_cvar("ze_version", ZE_VERSION, FCVAR_SERVER|FCVAR_SPONLY)
 	set_cvar_string("ze_version", ZE_VERSION)
+	
+	// Delay so cvars be loaded from zombie_escape.cfg
+	set_task(0.1, "DelaySmartRandom")
+}
+
+public DelaySmartRandom()
+{
+	if (get_pcvar_num(g_pCvarSmartRandom))
+	{
+		// Create our array to store SteamIDs in
+		g_aChosenPlayers = ArrayCreate(34)
+	}
 }
 
 public Fw_CheckMapConditions_Post()
@@ -350,6 +367,13 @@ public Choose_Zombies()
 		
 		if (!is_user_alive(id) || g_bIsZombie[id])
 			continue
+		
+		if (get_pcvar_num(g_pCvarSmartRandom))
+		{
+			// If player in the array, it means he chosen previous round so skip him this round
+			if (IsPlayerInArray(g_aChosenPlayers, id))
+				continue
+		}
 
 		Set_User_Zombie(id)
 		set_entvar(id, var_health, get_pcvar_float(g_pCvarFirstZombiesHealth))
@@ -359,6 +383,25 @@ public Choose_Zombies()
 		set_task(0.1, "Freeze_Zombies", FREEZE_ZOMBIES, _, _, "b") // Better than PreThink
 		ExecuteForward(g_iForwards[FORWARD_ZOMBIE_APPEAR], g_iFwReturn)
 		iZombies++
+	}
+	
+	if (get_pcvar_num(g_pCvarSmartRandom))
+	{
+		// Clear the array first
+		ArrayClear(g_aChosenPlayers)
+		
+		new szAuthId[34]
+		
+		// Add steamid of chosen zombies, so we don't choose them next round again (using steamid means it support reconnect)
+		for (new id = 1; id <= g_iMaxClients; id++)
+		{
+			if(!is_user_connected(id) || !g_bIsZombie[id])
+				continue
+			
+			get_user_authid(id, szAuthId, charsmax(szAuthId))
+			
+			ArrayPushString(g_aChosenPlayers, szAuthId)
+		}
 	}
 	
 	// 2 is Hardcoded Value, It's Fix for the countdown to work correctly
@@ -705,6 +748,14 @@ public Reset_Score_Message()
 	g_iHumansScore = 0
 	g_iZombiesScore = 0
 	g_iRoundNum = 0
+}
+
+public plugin_end()
+{
+	if (get_pcvar_num(g_pCvarSmartRandom))
+	{
+		ArrayDestroy(g_aChosenPlayers)
+	}
 }
 
 // Natives
