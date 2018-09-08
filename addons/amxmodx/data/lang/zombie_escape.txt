@@ -186,3 +186,66 @@ NO_EXTRA_ITEMS = !tAktulanie dodatkowe przedmioty nie sa dostepne!y.
 ITEM_LIMIT = \w[\r%i\d|\r%i\w]
 ITEM_LEVEL = \w[\rPoziom\d: \r%i\w]
 ITEM_VIP = \w(\rVIP\w)
+
+[bs]
+NO_ENOUGH_PLAYERS = !tNema dovoljno igraca!y. !tPotrebno!y: !t%i!y.
+RUN_NOTICE = Spremite se za bijeg. Bjezite nakon %i sekundi !
+ZOMBIE_RELEASE = Zombiji ce biti pusteni nakon: %i sekundi !
+READY_TO_RUN = !tDa li ste spremni!y? !gSRETNO !y:)
+ESCAPE_SUCCESS = Uspjesan bijeg!
+ESCAPE_FAIL = Neuspjesan bijeg!
+START_GAME = Pokretanje igre!
+INFECTION_NOTICE = %s je zarazio %s !
+SCORE_MESSAGE = Zombiji VS Ljudi^n %i --------- %i
+NO_WINNER = Bez pobjednika!
+RANK_INFO = [MAJSTOR PREZIVLJAVANJA]^n[1st] - %s^n[2nd] - %s^n[3rd] - %s
+RANK_INFO_LEADER = [Lider bijega]^n%s
+
+COINS_INFO = !tVas trenutni broj kovanica!y: !g%i
+ESCAPE_SUCCESS_COINS = !tUspješan bijeg!y: !t+!g%i !tKovanica!y!
+HUMAN_INFECTED_COINS = !tZarazili ste covjeka!y: !t+!g%i !tKovanica!y!
+
+ZOMBIE_SPEC = Gledate: %s^nHP: %i^nVrsta: Zombi^nBroj kovanica: %i
+ZOMBIE_SPEC_COMMAS = Gledate: %s^nHP: %s^nKlasa: Zombi^nBroj kovanica: %i
+
+HUMAN_SPEC = Gledate: %s^nHP: %i^nVrsta: Covjek^nBroj kovanica: %i
+HUMAN_SPEC_COMMAS = Gledate: %s^nHP: %s^nVrsta: Covjek^nBroj kovanica: %i
+
+HUMAN_SPEC_LEADER = Gledate: %s^nHP: %i^nKlasa: Lider bijega^nBroj kovanica: %i
+HUMAN_SPEC_COMMAS_LEADER = Gledate: %s^nHP: %s^nKlasa: Lider bijega^nBroj kovanica: %i
+
+ZOMBIE = HP: %i | Vrsta: Zombi | Broj kovanica: %i
+ZOMBIE_COMMAS = HP: %s | Vrsta: Zombi | Broj kovanica: %i
+
+HUMAN_LEADER = HP: %i | Klasa: Lider bijega | Broj kovanica: %i
+HUMAN_LEADER_COMMAS = HP: %s | Klasa: Lider bijega | Broj kovanica: %i
+
+HUMAN = HP: %i | Vrsta: Covjek | Broj kovanica: %i
+HUMAN_COMMAS = HP: %s | Vrsta: Covjek | Broj kovanica: %i
+
+BUY_ENABLED = !tPonovo ste aktivirali meni za odabir oruzja!y.
+RE_ENABLE_MENU = !tnapisite /enable ili pritisnite slovo M da aktivirate meni za odabir oruzja!y.
+ALREADY_BOUGHT = !tVec ste odabrali svoje oruzje!y!
+DEAD_CANT_BUY_WEAPON = !tNe mozete odabrati oruzje kada ste mrtvi!y.
+NO_BUY_ZOMBIE = !tNe mozete odabrati oruzje kada ste zombi!y.
+BUY_MENU_TIME_EXPIRED = !tVrijeme za odabir oruzja je isteklo!y.
+MENU_PRIMARY_TITLE = Osnovno oruzje
+MENU_SECONDARY_TITLE = Dodatno oruzje
+MENU_AUTOSELECT = Zapamtiti?
+SAVE_YES = Da
+SAVE_NO = Ne
+NEXT = Sljedece
+BACK = Povratak
+EXIT = Izlaz
+
+MAIN_MENU_TITLE = [ZE] Glavni Meni
+MENU_EXTRABUY = Kupite dodatke
+MENU_WEAPONBUY = Odaberite oruzje
+MENU_WEAPONBUY_RE_ENABLE = Ponovo aktivirajte meni za odabir oruzja
+
+BUY_EXTRAITEM = Dodaci
+NO_EXTRA_ITEMS = !tDodaci trenutno nisu dostupni!y.
+
+ITEM_LIMIT = \w[\r%i\d|\r%i\w]
+ITEM_LEVEL = \w[\rLevel\d: \r%i\w]
+ITEM_VIP = \w(\rVIP\w)
