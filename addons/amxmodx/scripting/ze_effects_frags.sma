@@ -40,27 +40,27 @@ public ze_roundend(WinTeam)
 {
 	if (WinTeam == ZE_TEAM_HUMAN)
 	{
-		for (new i = 1; i <= g_iMaxClients; i++)
+		for (new id = 1; id <= g_iMaxClients; id++)
 		{
 			// Skip All Dead Players or Zombies
-			if (!is_user_alive(i) || get_member(i, m_iTeam) == TEAM_TERRORIST)
+			if (!is_user_alive(id) || get_member(id, m_iTeam) == TEAM_TERRORIST)
 				continue
 			
 			// + Frags for All humans Who are Alive
-			UpdateFrags(i, 0, get_pcvar_num(g_pCvarEscapeSuccessFrags), 0, 1)
+			UpdateFrags(id, 0, get_pcvar_num(g_pCvarEscapeSuccessFrags), 0, 1)
 		}
 	}
 }
 
 public Fix_DeadAttrib()
 {
-	for (new i = 1; i <= g_iMaxClients; i++)
+	for (new id = 1; id <= g_iMaxClients; id++)
 	{
 		// Skip All Dead And Humans
-		if (!is_user_alive(i) || get_member(i, m_iTeam) == TEAM_CT)
+		if (!is_user_alive(id) || get_member(id, m_iTeam) == TEAM_CT)
 			continue
 		
 		// Fix the Dead Attribute
-		FixDeadAttrib(i)
+		FixDeadAttrib(id)
 	}
 }

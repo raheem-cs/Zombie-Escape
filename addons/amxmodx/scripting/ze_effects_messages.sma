@@ -225,15 +225,15 @@ public Speed_Stats()
 	// Rank First
 	iHighest = 0; iCurrentID = 0
 	
-	for(new i = 1; i <= g_iMaxClients; i++)
+	for(new id = 1; id <= g_iMaxClients; id++)
 	{
-		if(!is_user_alive(i) || ze_is_user_zombie(i))
+		if(!is_user_alive(id) || ze_is_user_zombie(id))
 			continue
 			
-		if(g_iEscapePoints[i] > iHighest)
+		if(g_iEscapePoints[id] > iHighest)
 		{
-			iCurrentID = i
-			iHighest = g_iEscapePoints[i]
+			iCurrentID = id
+			iHighest = g_iEscapePoints[id]
 		}
 	}
 	
@@ -242,18 +242,18 @@ public Speed_Stats()
 	// Rank Second
 	iHighest = 0; iCurrentID = 0
 	
-	for(new i = 1; i <= g_iMaxClients; i++)
+	for(new id = 1; id <= g_iMaxClients; id++)
 	{
-		if(!is_user_alive(i) || ze_is_user_zombie(i))
+		if(!is_user_alive(id) || ze_is_user_zombie(id))
 			continue
 		
-		if (g_iEscapeRank[RANK_FIRST] == i)
+		if (g_iEscapeRank[RANK_FIRST] == id)
 			continue
 			
-		if(g_iEscapePoints[i] > iHighest)
+		if(g_iEscapePoints[id] > iHighest)
 		{
-			iCurrentID = i
-			iHighest = g_iEscapePoints[i]
+			iCurrentID = id
+			iHighest = g_iEscapePoints[id]
 		}
 	}
 	
@@ -262,18 +262,18 @@ public Speed_Stats()
 	// Rank Third
 	iHighest = 0; iCurrentID = 0
 	
-	for(new i = 1; i <= g_iMaxClients; i++)
+	for(new id = 1; id <= g_iMaxClients; id++)
 	{
-		if(!is_user_alive(i) || ze_is_user_zombie(i))
+		if(!is_user_alive(id) || ze_is_user_zombie(id))
 			continue
 		
-		if(g_iEscapeRank[RANK_FIRST] == i || g_iEscapeRank[RANK_SECOND] == i)
+		if(g_iEscapeRank[RANK_FIRST] == id || g_iEscapeRank[RANK_SECOND] == id)
 			continue
 			
-		if(g_iEscapePoints[i] > iHighest)
+		if(g_iEscapePoints[id] > iHighest)
 		{
-			iCurrentID = i
-			iHighest = g_iEscapePoints[i]
+			iCurrentID = id
+			iHighest = g_iEscapePoints[id]
 		}
 	}
 	
