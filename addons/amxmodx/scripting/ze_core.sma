@@ -106,15 +106,13 @@ public plugin_init()
 	RegisterHookChain(RG_CSGameRules_CheckWinConditions, "Fw_CheckMapConditions_Post", 1)
 	RegisterHookChain(RG_CBasePlayer_Killed, "Fw_PlayerKilled_Post", 1)
 	RegisterHookChain(RG_RoundEnd, "Event_RoundEnd_Pre", 0)
+	RegisterHookChain(RG_CBasePlayer_ResetMaxSpeed, "Fw_RestMaxSpeed_Post", 1)
 	
 	// Events
 	register_event("HLTV", "New_Round", "a", "1=0", "2=0")
 	register_event("TextMsg", "Map_Restart", "a", "2=#Game_Commencing", "2=#Game_will_restart_in", "2=#Round_Draw")
 	register_logevent("Round_Start", 2, "1=Round_Start")
 	register_logevent("Round_End", 2, "1=Round_End")
-	
-	// Hams
-	RegisterHam(Ham_Item_PreFrame, "player", "Fw_RestMaxSpeed_Post", 1)
 	
 	// Create Forwards (All Return Values Ignored)
 	g_iForwards[FORWARD_ROUNDEND] = CreateMultiForward("ze_roundend", ET_IGNORE, FP_CELL)
@@ -231,16 +229,16 @@ public Fw_RestMaxSpeed_Post(id)
 			{
 				// Set New Human Speed Factor
 				set_entvar(id, var_maxspeed, flMaxSpeed + float(g_iHSpeedFactor[id]))
-				return HAM_IGNORED
+				return HC_CONTINUE
 			}
 				
 			// Set Human Speed Factor, native not used
 			set_entvar(id, var_maxspeed, flMaxSpeed + get_pcvar_float(g_pCvarHumanSpeedFactor))
-			return HAM_IGNORED
+			return HC_CONTINUE
 		}
 	}
 	
-	return HAM_SUPERCEDE
+	return HC_SUPERCEDE
 }
 
 public Fw_PlayerSpawn_Post(id)
@@ -522,7 +520,7 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 	return HC_CONTINUE
 }
 
-public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:fDamage, bitsDamageType)
+public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:flDamage, bitsDamageType)
 {
 	// Not Vaild Victim or Attacker so skip the event (Important to block out bounds errors)
 	if (!is_user_connected(iVictim) || !is_user_connected(iAttacker))
