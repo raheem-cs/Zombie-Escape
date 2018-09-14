@@ -22,6 +22,7 @@ enum
 // Variables
 new g_iMaxClients,
 	g_iSpeedRank,
+	g_iInfectionMsg,
 	g_iEscapePoints[33],
 	g_iEscapeRank[4]
 
@@ -58,6 +59,7 @@ public plugin_init()
 	
 	// Messages
 	g_iSpeedRank = CreateHudSyncObj()
+	g_iInfectionMsg = CreateHudSyncObj()
 	
 	// Others
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
@@ -82,7 +84,7 @@ public ze_user_infected(iVictim, iInfector)
 		get_user_name(iVictim, szVictimName, charsmax(szVictimName))
 		get_user_name(iInfector, szAttackerName, charsmax(szAttackerName))
 		set_hudmessage(get_pcvar_num(g_pCvarInfectColors[Red]), get_pcvar_num(g_pCvarInfectColors[Green]), get_pcvar_num(g_pCvarInfectColors[Blue]), 0.05, 0.45, 1, 0.0, 6.0, 0.0, 0.0)
-		show_hudmessage(0, "%L", LANG_PLAYER, "INFECTION_NOTICE", szAttackerName, szVictimName)
+		ShowSyncHudMsg(0, g_iInfectionMsg, "%L", LANG_PLAYER, "INFECTION_NOTICE", szAttackerName, szVictimName)
 	}
 }
 

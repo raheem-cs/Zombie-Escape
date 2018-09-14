@@ -715,6 +715,9 @@ public Set_User_Human(id)
 	set_entvar(id, var_gravity, get_pcvar_float(g_pCvarHumanGravity)/800.0)
 	ExecuteForward(g_iForwards[FORWARD_HUMANIZED], g_iFwReturn, id)
 	
+    // Reset Nightvision (Useful for antidote, so when someone use sethuman native the nightvision also reset)
+    Set_NightVision(id, 0, 0, 0x0000, 0, 0, 0, 0)
+	
 	if (get_member(id, m_iTeam) != TEAM_CT)
 		rg_set_user_team(id, TEAM_CT, MODEL_UNASSIGNED)
 }
