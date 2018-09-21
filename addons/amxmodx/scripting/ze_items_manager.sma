@@ -26,7 +26,7 @@ new Array:g_szItemRealName,
 	Array:g_iItemLimit
 
 new g_iItemCount, 
-	g_szAdditionalMenuText[32],
+	g_szAdditionalMenuText[64],
 	g_iMenuData[33]
 
 public plugin_init()
