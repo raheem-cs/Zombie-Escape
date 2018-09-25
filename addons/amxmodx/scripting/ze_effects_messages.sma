@@ -24,7 +24,8 @@ new g_iMaxClients,
 	g_iSpeedRank,
 	g_iInfectionMsg,
 	g_iEscapePoints[33],
-	g_iEscapeRank[4]
+	g_iEscapeRank[4],
+	bool:g_bStopRendering[33]
 
 // Cvars
 new g_pCvarInfectNotice, 
@@ -71,6 +72,7 @@ public plugin_init()
 public plugin_natives()
 {
 	register_native("ze_get_escape_leader_id", "native_ze_get_escape_leader_id", 1)
+	register_native("ze_stop_mod_rendering", "native_ze_stop_mod_rendering", 1)
 }
 
 public ze_user_infected(iVictim, iInfector)
@@ -121,7 +123,7 @@ public Show_Message()
 			// Set Glow For Escape Leader
 			for (new i = 1; i <= g_iMaxClients; i++)
 			{
-				if (!is_user_alive(i))
+				if (!is_user_alive(i) || g_bStopRendering[i])
 					continue
 			
 				if (g_iEscapeRank[RANK_FIRST] == i) // The Leader id
@@ -285,4 +287,15 @@ public Speed_Stats()
 public native_ze_get_escape_leader_id()
 {
 	return g_iEscapeRank[RANK_FIRST]
+}
+
+public native_ze_stop_mod_rendering(id, bool:bSet)
+{
+	if (is_user_connected(id))
+	{
+		g_bStopRendering[id] = bSet
+		return true
+    }
+	
+	return false
 }

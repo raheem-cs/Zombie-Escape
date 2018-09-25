@@ -374,6 +374,24 @@ native ze_set_escape_coins(id, iAmount);
 native ze_get_escape_leader_id();
 
 /*
+* Description:		Stop/Resume setting rendering from ze_effects_messages.sma plugin.
+*
+* @param id			Client index.
+* @param bSet		True or false, True will stop the rendering that comes from ze_effects_messages.sma
+*					false will continue setting rendering from ze_effects_messages.sma
+*
+* @return			true  | If set successfully
+*					false | If this player not connected
+*						
+* @note				This native will not throw error if player not connected. It will just return false.
+*					You before you set rendering for any player in any plugin you should first make: ze_stop_mod_rendering(id, true)
+*					This will ensure that no rendering is setting from ze_effects_messages.sma plugin.
+*					When you remove rendering, you should use: ze_stop_mod_rendering(id, false)
+*
+*/
+native ze_stop_mod_rendering(id, bool:bSet);
+
+/*
 * Description:	Used to set/stop fire on zombie.
 *
 * @param id		Client index.
