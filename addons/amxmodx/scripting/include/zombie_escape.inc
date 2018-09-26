@@ -31,7 +31,7 @@ enum
 #define ZE_ITEM_DONT_SHOW 2
 
 // Max Extra-Items
-#define MAX_EXTRA_ITEMS 40
+#define MAX_EXTRA_ITEMS 60
 
 // Forwards
 
