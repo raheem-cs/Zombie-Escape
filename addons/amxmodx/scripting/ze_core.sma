@@ -107,6 +107,7 @@ public plugin_init()
 	RegisterHookChain(RG_CBasePlayer_Killed, "Fw_PlayerKilled_Post", 1)
 	RegisterHookChain(RG_RoundEnd, "Event_RoundEnd_Pre", 0)
 	RegisterHookChain(RG_CBasePlayer_ResetMaxSpeed, "Fw_RestMaxSpeed_Post", 1)
+	RegisterHookChain(RG_HandleMenu_ChooseTeam, "Fw_HandleMenu_ChooseTeam_Post", 1)
 	
 	// Events
 	register_event("HLTV", "New_Round", "a", "1=0", "2=0")
@@ -675,6 +676,12 @@ public Check_AlivePlayers()
 }
 
 public client_putinserver(id)
+{
+	// Add Delay and Check Conditions To start the Game (Delay needed)
+	set_task(1.0, "Check_AllPlayersNumber", _, _, _, "b")
+}
+
+public Fw_HandleMenu_ChooseTeam_Post(id, MenuChooseTeam:iSlot)
 {
 	// Add Delay and Check Conditions To start the Game (Delay needed)
 	set_task(1.0, "Check_AllPlayersNumber", _, _, _, "b")
