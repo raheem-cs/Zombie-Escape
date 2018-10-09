@@ -10,6 +10,7 @@ public plugin_init()
 	
 	// Commands
 	register_clcmd("chooseteam", "Cmd_ChooseTeam")
+	register_clcmd("jointeam", "Cmd_ChooseTeam")
 	register_clcmd("say /ze", "Cmd_ChooseTeam")
 	register_clcmd("say_team /ze", "Cmd_ChooseTeam")
 	
