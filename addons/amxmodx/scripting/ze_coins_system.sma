@@ -19,7 +19,7 @@ new const g_szTable[] =
 new g_iMaxClients,
 	g_iVaultHandle,
 	g_iEscapeCoins[33], 
-	Float:g_fDamage[33],
+	Float:g_flDamage[33],
 	Handle:g_hTuple,
 	Handle:g_hSQLConnection
 
@@ -209,19 +209,32 @@ public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:fDamage, bitsDam
 		return HC_CONTINUE
 	
 	// Store Damage For every Player
-	g_fDamage[iAttacker] += fDamage
+	g_flDamage[iAttacker] += fDamage
 	
 	// Damage Calculator Equal or Higher than needed damage
-	if (g_fDamage[iAttacker] >= get_pcvar_float(g_pCvarDamage))
+	if (g_flDamage[iAttacker] >= get_pcvar_float(g_pCvarDamage))
 	{
-		// Give Player The Coins
-		g_iEscapeCoins[iAttacker] += get_pcvar_num(g_pCvarDamageCoins)
+		// Player did damage that a multiplication of the cvar? Increase coins by this factor
+		new iMultiplier = floatround(g_flDamage[iAttacker] / get_pcvar_float(g_pCvarDamage))
+		
+		// If this multiplier is more than or equal 2, then multiply it with original coins reward
+		if (iMultiplier >= 2)
+		{
+			// Give player coins * multiplier
+			g_iEscapeCoins[iAttacker] += (get_pcvar_num(g_pCvarDamageCoins) * iMultiplier)
+		}
+		else
+		{
+			// Give player The coins, without multiplier
+			g_iEscapeCoins[iAttacker] += get_pcvar_num(g_pCvarDamageCoins)
+		}
 		
 		SaveCoins(iAttacker)
 		
 		// Rest The Damage Calculator
-		g_fDamage[iAttacker] = 0.0
+		g_flDamage[iAttacker] = 0.0
 	}
+	
 	return HC_CONTINUE
 }
 
