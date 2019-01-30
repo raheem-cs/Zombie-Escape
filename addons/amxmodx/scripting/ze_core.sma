@@ -115,7 +115,7 @@ public plugin_init()
 	register_logevent("Round_Start", 2, "1=Round_Start")
 	register_logevent("Round_End", 2, "1=Round_End")
 	
-	// Create Forwards (All Return Values Ignored)
+	// Create Forwards
 	g_iForwards[FORWARD_ROUNDEND] = CreateMultiForward("ze_roundend", ET_IGNORE, FP_CELL)
 	g_iForwards[FORWARD_HUMANIZED] = CreateMultiForward("ze_user_humanized", ET_IGNORE, FP_CELL)
 	g_iForwards[FORWARD_PRE_INFECTED] = CreateMultiForward("ze_user_infected_pre", ET_CONTINUE, FP_CELL, FP_CELL, FP_CELL)
@@ -182,6 +182,28 @@ public plugin_cfg()
 	
 	// Delay so cvars be loaded from zombie_escape.cfg
 	set_task(0.1, "DelaySmartRandom")
+	
+	// Delay some settings
+	set_task(0.1, "DelaySettings")
+}
+
+public DelaySettings()
+{
+	// Set some cvars, not allowed to be changed from any other .cfg file (Not recommended to remove them)
+	new pCvarRoundTime, pCvarFreezeTime, pCvarMaxSpeed
+	
+	pCvarRoundTime = get_cvar_pointer("mp_roundtime")
+	pCvarFreezeTime = get_cvar_pointer("mp_freezetime")
+	pCvarMaxSpeed = get_cvar_pointer("sv_maxspeed")
+	
+	set_pcvar_num(pCvarRoundTime, get_pcvar_num(g_pCvarRoundTime))
+	set_pcvar_num(pCvarFreezeTime, get_pcvar_num(g_pCvarFreezeTime))
+	
+	// Max speed at least equal to zombies speed. Here zombies speed assumed to be higher than humans one.
+	if (get_pcvar_num(pCvarMaxSpeed) < get_pcvar_num(g_pCvarZombieSpeed))
+	{
+		set_pcvar_num(pCvarMaxSpeed, get_pcvar_num(g_pCvarZombieSpeed))
+	}
 }
 
 public DelaySmartRandom()
