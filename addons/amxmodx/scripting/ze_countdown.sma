@@ -92,3 +92,9 @@ public Countdown_Start()
 	
 	g_iCountDown--
 }
+
+public ze_roundend(WinTeam)
+{
+	// At round end, remove countdown task to block interference next round
+	remove_task(TASK_COUNTDOWN)
+}
