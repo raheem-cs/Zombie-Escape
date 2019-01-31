@@ -118,7 +118,19 @@ new Array:g_szHostZombieModel,
 // Variables
 new g_iMaxPlayers, 
 	g_pCvarReleaseTime,
-	g_iMsgIndexWeaponList
+	g_iMsgIndexWeaponList,
+	bool:g_bAmbianceSound[33], 
+	bool:g_bReadySound[33], 
+	bool:g_bInReady, 
+	bool:g_bInReadyOnly
+	
+public plugin_natives()
+{
+	register_native("ze_set_starting_sounds", "native_ze_set_starting_sounds", 1)
+	register_native("ze_is_starting_sounds_enabled", "native_ze_is_starting_sounds_enabled", 1)
+	register_native("ze_set_ambiance_sounds", "native_ze_set_ambiance_sounds", 1)
+	register_native("ze_is_ambiance_sounds_enabled", "native_ze_is_ambiance_sounds_enabled", 1)
+}
 
 public plugin_init()
 {
@@ -138,6 +150,10 @@ public plugin_init()
 	
 	// Weapon list
 	g_iMsgIndexWeaponList = get_user_msgid("WeaponList")
+	
+	// Default ambiance and ready sounds are enabled
+	arrayset(g_bAmbianceSound, true, 32)
+	arrayset(g_bReadySound, true, 32)
 }
 
 public plugin_precache()
@@ -465,6 +481,9 @@ public ze_game_started()
 
 		PlaySound(id, szSound)
 	}
+	
+	g_bInReady = true
+	g_bInReadyOnly = true
 }
 
 public ze_user_infected(iVictim, iInfector)
@@ -508,14 +527,20 @@ public ze_zombie_appear()
 }
 
 public ZombieAppear()
-{	
+{
+	// Now pre-release
+	g_bInReadyOnly = false
+	
+	// Stop any other sound, so no interference occur
+	StopSound()
+	
 	// Play Pre-Release Sound For All Players
 	new szSound[SOUND_MAX_LENGTH]
 	ArrayGetString(g_szPreReleaseSound, random_num(0, ArraySize(g_szPreReleaseSound) - 1), szSound, charsmax(szSound))
 	
 	for(new id = 1; id <= g_iMaxPlayers; id++)
 	{
-		if(!is_user_connected(id))
+		if(!is_user_connected(id) || !g_bReadySound[id])
 			continue
 
 		PlaySound(id, szSound)
@@ -533,13 +558,15 @@ public AmbianceSound()
 	// Stop All Sounds
 	StopSound()
 	
+	g_bInReady = false
+	
 	// Play The Ambiance Sound For All Players
 	new szSound[SOUND_MAX_LENGTH]
 	ArrayGetString(g_szAmbianceSound, random_num(0, ArraySize(g_szAmbianceSound) - 1), szSound, charsmax(szSound))
 	
 	for(new id = 1; id <= g_iMaxPlayers; id++)
 	{
-		if(!is_user_connected(id))
+		if(!is_user_connected(id) || !g_bAmbianceSound[id])
 			continue
 
 		PlaySound(id, szSound)
@@ -557,7 +584,7 @@ public RePlayAmbianceSound()
 	
 	for(new id = 1; id <= g_iMaxPlayers; id++)
 	{
-		if(!is_user_connected(id))
+		if(!is_user_connected(id) || !g_bAmbianceSound[id])
 			continue
 
 		PlaySound(id, szSound)
@@ -651,4 +678,119 @@ WeaponList(id, iMode = 0)
 	write_byte(CSW_KNIFE)
 	write_byte(0)
 	message_end()
+}
+
+// Natives
+public native_ze_set_starting_sounds(id, bool:bSet)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false;
+	}
+	
+	// If true, enable starting sounds (Ready + PreRelease)
+	if (bSet)
+	{
+		if (!g_bReadySound[id])
+		{
+			g_bReadySound[id] = true
+			
+			// This means player, still in ready so play ready sound
+			if (g_bInReadyOnly == true)
+			{
+				new szSound[SOUND_MAX_LENGTH]
+				ArrayGetString(g_szReadySound, random_num(0, ArraySize(g_szReadySound) - 1), szSound, charsmax(szSound))
+				
+				PlaySound(id, szSound)
+			}
+			
+			// This will play the pre-release sound
+			if (g_bInReady == true && !g_bInReadyOnly)
+			{
+				new szSound[SOUND_MAX_LENGTH]
+				ArrayGetString(g_szPreReleaseSound, random_num(0, ArraySize(g_szPreReleaseSound) - 1), szSound, charsmax(szSound))
+				
+				PlaySound(id, szSound)
+			}
+		}
+	}
+	else
+	{
+		if (g_bReadySound[id])
+		{
+			g_bReadySound[id] = false
+			
+			client_cmd(id, "mp3 stop")
+			client_cmd(id, "stopsound")
+		}
+	}
+	
+	return true;
+}
+
+public native_ze_set_ambiance_sounds(id, bool:bSet)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false;
+	}
+	
+	// If true, enable ambiance sound
+	if (bSet)
+	{
+		if (!g_bAmbianceSound[id])
+		{
+			g_bAmbianceSound[id] = true
+			
+			// If player not in ready, then enable sound instantly
+			if (!g_bInReady)
+			{
+				new szSound[SOUND_MAX_LENGTH]
+				ArrayGetString(g_szAmbianceSound, random_num(0, ArraySize(g_szAmbianceSound) - 1), szSound, charsmax(szSound))
+				
+				PlaySound(id, szSound)
+				
+				// We should Set Task back again to replay (Repeated 5 times MAX)
+				set_task(float(g_iAmbianceSoundDuration), "RePlayAmbianceSound", TASK_REAMBIENCESOUND, _, _, "a", 5)
+			}
+		}
+	}
+	else
+	{
+		if (g_bAmbianceSound[id])
+		{
+			g_bAmbianceSound[id] = false
+			
+			if (!g_bInReady)
+			{
+				client_cmd(id, "mp3 stop")
+			}
+		}
+	}
+	
+	return true;
+}
+
+public native_ze_is_starting_sounds_enabled(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return -1;
+	}
+	
+	return g_bReadySound[id];
+}
+
+public native_ze_is_ambiance_sounds_enabled(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return -1;
+	}
+	
+	return g_bAmbianceSound[id];
 }

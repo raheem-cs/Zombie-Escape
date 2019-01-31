@@ -681,3 +681,51 @@ native ze_is_auto_buy_enabled(id);
 *
 */
 native ze_disable_auto_buy(id);
+
+/*
+* Description:	Enable and disable Ready&PreRelease sounds for any player.
+*
+* @param id		Client index.
+* @param bSet	true will enable sounds, false will disable sounds.
+*
+* @return		true  | If successfully disabled/enabled.
+*				false | If this player not connected.
+*
+*/
+native ze_set_starting_sounds(id, bool:bSet);
+
+/*
+* Description:	Enable and disable ambiance sound for any player.
+*
+* @param id		Client index.
+* @param bSet	true will enable sound, false will disable sound.
+*
+* @return		true  | If successfully disabled/enabled.
+*				false | If this player not connected.
+*
+*/
+native ze_set_ambiance_sounds(id, bool:bSet);
+
+/*
+* Description:	Check for any player if Ready&PreRelease sounds enabled or disabled.
+*
+* @param id		Client index.
+*
+* @return		true  | If sounds enabled.
+*				false | If sounds disabled.
+*				-1 	  | If this player not connected.
+*
+*/
+native ze_is_starting_sounds_enabled(id);
+
+/*
+* Description:	Check for any player if ambiance sounds enabled or disabled.
+*
+* @param id		Client index.
+*
+* @return		true  | If sounds enabled.
+*				false | If sounds disabled.
+*				-1 	  | If this player not connected.
+*
+*/
+native ze_is_ambiance_sounds_enabled(id);
