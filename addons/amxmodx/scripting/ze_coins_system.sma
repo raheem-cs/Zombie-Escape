@@ -20,8 +20,7 @@ new g_iMaxClients,
 	g_iVaultHandle,
 	g_iEscapeCoins[33], 
 	Float:g_flDamage[33],
-	Handle:g_hTuple,
-	Handle:g_hSQLConnection
+	Handle:g_hTuple
 
 // Cvars
 new g_pCvarEscapeSuccess, 
@@ -108,22 +107,22 @@ public MySQL_Init()
 	g_hTuple = SQL_MakeDbTuple(szHost, szUser, szPass, szDB)
 	
 	// Let's ensure that the g_hTuple will be valid, we will access the database to make sure
-	new iErrorCode, szError[512]
+	new iErrorCode, szError[512], Handle:hSQLConnection
 	
-	g_hSQLConnection = SQL_Connect(g_hTuple, iErrorCode, szError, charsmax(szError))
+	hSQLConnection = SQL_Connect(g_hTuple, iErrorCode, szError, charsmax(szError))
 	
-	if(g_hSQLConnection != Empty_Handle)
+	if(hSQLConnection != Empty_Handle)
 	{
 		log_amx("[MySQL] Successfully connected to host: %s (ALL IS OK).", szHost)
+		SQL_FreeHandle(hSQLConnection)
 	}
 	else
 	{
-		log_amx("[MySQL] [Error] %s", szError)
-		
-		// Disable plugin
-		set_fail_state("Failed to connect to MySQL database.")
+		// Disable plugin, and display the error
+		set_fail_state("Failed to connect to MySQL database: %s", szError)
 	}
 	
+	// Create our table
 	SQL_ThreadQuery(g_hTuple, "QueryCreateTable", g_szTable)
 }
 
@@ -132,7 +131,7 @@ public QueryCreateTable(iFailState, Handle:hQuery, szError[], iError, szData[], 
 	SQL_IsFail(iFailState, iError, szError, g_szLogFile)
 }
 
-public client_putinserver(id) 
+public client_putinserver(id)
 {
 	if (is_user_bot(id) || is_user_hltv(id))
 		return
@@ -150,7 +149,10 @@ public plugin_end()
 {
 	if (get_pcvar_num(g_pCvarSaveType))
 	{
-		SQL_FreeHandle(g_hTuple)
+		if (g_hTuple != Empty_Handle)
+		{
+			SQL_FreeHandle(g_hTuple)
+		}
 	}
 }
 
