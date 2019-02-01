@@ -64,6 +64,9 @@ public plugin_precache()
 public plugin_init()
 {
 	register_plugin("[ZE] Sound Countdown", ZE_VERSION, AUTHORS)
+	
+	// Map restart event
+	register_event("TextMsg", "Map_Restart", "a", "2=#Game_Commencing", "2=#Game_will_restart_in", "2=#Round_Draw")
 }
 
 public ze_game_started()
@@ -96,5 +99,11 @@ public Countdown_Start()
 public ze_roundend(WinTeam)
 {
 	// At round end, remove countdown task to block interference next round
+	remove_task(TASK_COUNTDOWN)
+}
+
+public Map_Restart()
+{
+	// At map restart, remove countdown task to block interference next rounds
 	remove_task(TASK_COUNTDOWN)
 }
