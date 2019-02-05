@@ -9,7 +9,7 @@
 #include <cs_weap_models_api>
 #include <zombie_escape_stocks>
 
-#define ZE_VERSION "1.3"
+#define ZE_VERSION "1.4"
 #define AUTHORS "ZE Dev Team"
 
 /*
