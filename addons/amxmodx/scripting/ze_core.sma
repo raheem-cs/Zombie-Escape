@@ -10,7 +10,8 @@ enum _:TOTAL_FORWARDS
 	FORWARD_INFECTED,
 	FORWARD_ZOMBIE_APPEAR,
 	FORWARD_ZOMBIE_RELEASE,
-	FORWARD_GAME_STARTED
+	FORWARD_GAME_STARTED,
+	FORWARD_DISCONNECT
 }
 
 new g_iForwards[TOTAL_FORWARDS], g_iFwReturn, g_iTeam
@@ -123,6 +124,7 @@ public plugin_init()
 	g_iForwards[FORWARD_ZOMBIE_APPEAR] = CreateMultiForward("ze_zombie_appear", ET_IGNORE)
 	g_iForwards[FORWARD_ZOMBIE_RELEASE] = CreateMultiForward("ze_zombie_release", ET_IGNORE)
 	g_iForwards[FORWARD_GAME_STARTED] = CreateMultiForward("ze_game_started", ET_IGNORE)
+	g_iForwards[FORWARD_DISCONNECT] = CreateMultiForward("ze_player_disconnect", ET_CONTINUE, FP_CELL)
 	
 	// Hud Messages
 	g_iReleaseNotice = CreateHudSyncObj()
@@ -625,12 +627,21 @@ public Check_RoundTimeleft()
 
 public client_disconnected(id)
 {
-	// Delay Then Check Players to Terminate The round (Delay needed)
-	set_task(0.1, "Check_AlivePlayers")
-	
 	// Reset speed for this dropped id
 	g_bHSpeedUsed[id] = false
 	g_bZSpeedUsed[id] = false
+	
+	// Execute our disconnected forward
+	ExecuteForward(g_iForwards[FORWARD_DISCONNECT], g_iFwReturn, id)
+	
+	if (g_iFwReturn > 0)
+	{
+		// Here return, function ended here, below won't be executed
+		return
+	}
+	
+	// Delay Then Check Players to Terminate The round (Delay needed)
+	set_task(0.1, "Check_AlivePlayers")
 }
 
 // This check done when player disconnect

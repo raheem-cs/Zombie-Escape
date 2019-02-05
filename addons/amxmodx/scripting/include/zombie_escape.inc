@@ -176,6 +176,19 @@ forward ze_select_item_pre(id, iItemid, bIgnoreCost);
 */
 forward ze_select_item_post(id, iItemid, bIgnoreCost);
 
+/*
+* Description:			Called when player disconnect.
+*
+* @param id				Client index.
+*
+* @return				return 0 | Will continue Mod game rules.
+*						return 1 | Will block Mod game rules, you can use yours.
+*
+* @note					Useful in plugins like, replacing disconnected zombie/human if he was last zombie/human.
+*
+*/
+forward ze_player_disconnect(id);
+
 // Natives
 
 /*
