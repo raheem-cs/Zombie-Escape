@@ -537,7 +537,7 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 			client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
 			
 			// This needed so forward work also to add +1 for Zombies
-			g_iTeam = 1 // ZE_TEAM_ZOMBIE
+			g_iTeam = ZE_TEAM_ZOMBIE
 			ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
 		}
 	}
@@ -572,7 +572,7 @@ public Round_End()
 	
 	if (g_iAliveZombiesNum == 0 && g_bGameStarted) 
 	{
-		g_iTeam = 2 // ZE_TEAM_HUMAN
+		g_iTeam = ZE_TEAM_HUMAN
 		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
 		client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
 		g_iHumansScore++
@@ -580,7 +580,7 @@ public Round_End()
 		return // To block Execute the code blew
 	}
 	
-	g_iTeam = 1 // ZE_TEAM_ZOMBIE
+	g_iTeam = ZE_TEAM_ZOMBIE
 	g_iZombiesScore++
 	g_bIsRoundEnding = true
 	
