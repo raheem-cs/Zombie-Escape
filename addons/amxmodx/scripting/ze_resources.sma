@@ -657,9 +657,11 @@ public Fw_AddItemToPlayer_Post(iItem, id)
 public Hook_ZombieKnifeSelection(id)
 { 
 	if (!is_user_alive(id) || !ze_is_user_zombie(id))
-		return
+		return PLUGIN_HANDLED
 
 	engclient_cmd(id, "weapon_knife")
+	
+	return PLUGIN_HANDLED
 }
 
 WeaponList(id, iMode = 0)
