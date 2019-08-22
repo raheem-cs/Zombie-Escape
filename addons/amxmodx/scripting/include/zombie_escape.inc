@@ -13,8 +13,8 @@
 #define AUTHORS "ZE Dev Team"
 
 /*
-*   For more information about these natives and forwards, just vist our forum:
-*                          Escapers-Zone.net
+*	For more information about these natives and forwards, just vist our forum:
+*						Escapers-Zone.net
 */
 
 // Team constants, use them in ze_roundend() forward 
@@ -112,8 +112,8 @@ forward ze_zombie_release();
 * @return		To block zombie escape round return 1, To continue zombie escape mod return 0.
 *
 * @note			This called every new round only if the game started
-* 				which mean players is higher than required player so game already started.
-* 				this native somehow similar to new round event but only called when game started.
+*				which mean players is higher than required player so game already started.
+*				this native somehow similar to new round event but only called when game started.
 *				You can use it to block zombie escape mod round, and use your own round like Nemesis round
 *				make sure to use this after first round, never return 1 in first round.
 *
@@ -126,8 +126,8 @@ forward ze_game_started_pre();
 * @return		Returns here useless, it will not affect the real new round event.
 *
 * @note			This called every new round only if the game started
-* 				which mean players is higher than required player so game already started.
-* 				this native somehow similar to new round event but only called when game started.
+*				which mean players is higher than required player so game already started.
+*				this native somehow similar to new round event but only called when game started.
 *
 */
 forward ze_game_started();
@@ -311,7 +311,7 @@ native ze_set_user_human(id);
 *					Using this native will set the players speed for the whole map.
 *					Speeds reset if this player disconnect, or reset using reset native.
 *					This is limited by sv_maxspeed cvar.
-* 					This will throw error in case of invalid player.
+*					This will throw error in case of invalid player.
 *
 */
 native ze_set_human_speed_factor(id, iFactor);
@@ -357,10 +357,47 @@ native ze_set_zombie_speed(id, iSpeed);
 * @return		true  | If reset successfully
 *				false | If this player not connected
 *
-* @note				This will throw error in case of invalid player.
+* @note			This will throw error in case of invalid player.
 *
 */
 native ze_reset_zombie_speed(id);
+
+/*
+* Description:	Get user knockback.
+*
+* @param id		Client index.
+*
+* @return		Knockback value | if client valid
+*				-1				| If player not connected
+*
+* @note			This will throw error in case of invalid player.
+*				This function return integer value.
+*
+*/
+native ze_get_user_knockback(id)
+
+/*
+* Description:			Set user knockback.
+*
+* @param id				Client index.
+* @param flKnockback	Knockback value as float.	
+*
+* @return				true	| If set successfully
+*						false	| If this player not connected
+*
+*/
+ze_set_user_knockback(id, Float:flKnockback)
+
+/*
+* Description:	Reset user knockback to use value from CVAR.
+*
+* @param id		Client index.
+*
+* @return		true	| If reset successfully
+*				false	| If this player not connected
+*
+*/
+ze_reset_user_knockback(id)
 
 /*
 * Description:	Get player escape coins.
@@ -423,7 +460,7 @@ native ze_stop_mod_rendering(id, bool:bSet);
 *
 * @param id		Client index.
 * @param bSet	Boolean value, true will set fire on zombie.
-* 				false will stop fire on zombie.
+*				false will stop fire on zombie.
 *
 * @return		true  | If successfully set/stop fire on zombie.
 *				false | If returned 1 in ze_fire_pre() forward.
@@ -434,7 +471,7 @@ native ze_stop_mod_rendering(id, bool:bSet);
 *				imediatly by using: ze_set_fire_grenade(id, false)
 *				Same you can fire him at anytime.
 *				Always check if user alive or not when using this native.
-* 				This will throw error in case of invalid player.
+*				This will throw error in case of invalid player.
 *
 */
 native ze_set_fire_grenade(id, bSet);
@@ -467,7 +504,7 @@ native ze_zombie_in_fire(id);
 *				imediatly by using: ze_set_frost_grenade(id, false)
 *				Same you can freeze him at anytime.
 *				Always check if user alive or not when using this native.
-* 				This will throw error in case of invalid player.
+*				This will throw error in case of invalid player.
 *
 */
 native ze_set_frost_grenade(id, bSet);
@@ -485,18 +522,18 @@ native ze_set_frost_grenade(id, bSet);
 native ze_zombie_in_forst(id);
 
 /*
-* Description:			Register extra-item in the items-menu.
+* Description:		Register extra-item in the items-menu.
 *
 * @param szItemName[]	Item name.
 * @param iCost			Item cost.
 * @param iLimit			Item limit.
 *
 * @return				Item id in the menu, if successfully registered.
-*				        ZE_WRONG_ITEM | If item name was empty or item already registered.
+*						ZE_WRONG_ITEM | If item name was empty or item already registered.
 *
 * @note					ZE_WRONG_ITEM is defined as -1
-* 						Limit must be >= 0, 0 means unlimited.
-*                       Use this native in plugin_init() forward.
+*						Limit must be >= 0, 0 means unlimited.
+*						Use this native in plugin_init() forward.
 *
 */
 native ze_register_item(const szItemName[], iCost, iLimit);
@@ -615,7 +652,7 @@ native ze_get_item_name(iItemid, const szName[], iLen);
 *					ZE_WRONG_ITEM | If this itemid is invalid.
 *
 * @note				Use this under ze_register_item() native in plugin_init() forward.
-* 					To use this native level plugin must be installed.
+*					To use this native level plugin must be installed.
 *
 */
 native ze_set_item_level(iItemid, iLevel);
@@ -643,8 +680,8 @@ native ze_get_item_level(iItemid);
 *					ZE_WRONG_ITEM | If this itemid is invalid.
 *
 * @note				Use this under ze_register_item() native in plugin_init() forward.
-* 					To use this native VIP plugin must be installed.
-* 					Make sure to use only one flag.
+*					To use this native VIP plugin must be installed.
+*					Make sure to use only one flag.
 *
 */
 native ze_set_item_vip(iItemid, szFlag[]);

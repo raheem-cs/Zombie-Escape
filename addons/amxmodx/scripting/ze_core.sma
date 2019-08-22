@@ -55,7 +55,9 @@ new g_iAliveHumansNum,
 	bool:g_bHSpeedUsed[33], 
 	bool:g_bZSpeedUsed[33],
 	bool:g_bEndCalled,
-	Float:g_flReferenceTime
+	bool:g_bIsKnockBackUsed[33],
+	Float:g_flReferenceTime,
+	Float:g_flUserKnockback[33]
 
 // Cvars
 new	g_pCvarHumanSpeedFactor, 
@@ -95,6 +97,10 @@ public plugin_natives()
 	
 	register_native("ze_reset_human_speed", "native_ze_reset_human_speed", 1)
 	register_native("ze_reset_zombie_speed", "native_ze_reset_zombie_speed", 1)
+	
+	register_native("ze_get_user_knockback", "native_ze_get_user_knockback", 1)
+	register_native("ze_set_user_knockback", "native_ze_set_user_knockback", 1)
+	register_native("ze_reset_user_knockback", "native_ze_reset_user_knockback", 1)
 }
 
 public plugin_init()
@@ -572,7 +578,7 @@ public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:flDamage, bitsDa
 		// Set Knockback
 		static Float:flOrigin[3]
 		get_entvar(iAttacker, var_origin, flOrigin)
-		Set_Knockback(iVictim, flOrigin, get_pcvar_float(g_pCvarZombieKnockback), 2)
+		Set_Knockback(iVictim, flOrigin, g_bIsKnockBackUsed[iVictim] ? g_flUserKnockback[iVictim]:get_pcvar_float(g_pCvarZombieKnockback), 2)
 	}
 	
 	return HC_CONTINUE
@@ -642,6 +648,8 @@ public client_disconnected(id)
 	// Reset speed for this dropped id
 	g_bHSpeedUsed[id] = false
 	g_bZSpeedUsed[id] = false
+	g_bIsKnockBackUsed[id] = false
+	g_flUserKnockback[id] = 0.0
 	
 	// Execute our disconnected forward
 	ExecuteForward(g_iForwards[FORWARD_DISCONNECT], g_iFwReturn, id)
@@ -943,4 +951,41 @@ public native_ze_reset_zombie_speed(id)
 	
 	g_bZSpeedUsed[id] = false
 	return true;
+}
+
+public native_ze_get_user_knockback(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return -1
+	}
+
+	return floatround(g_bIsKnockBackUsed[id] ? g_flUserKnockback[id]:get_pcvar_float(g_pCvarZombieKnockback))
+}
+
+public native_ze_set_user_knockback(id, Float:flKnockback)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false
+	}
+	
+	g_bIsKnockBackUsed[id] = true
+	g_flUserKnockback[id] = flKnockback
+	return true
+}
+
+public native_ze_reset_user_knockback(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false
+	}
+
+	g_bIsKnockBackUsed[id] = false
+	g_flUserKnockback[id] = 0.0
+	return true
 }
