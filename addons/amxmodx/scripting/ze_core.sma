@@ -10,6 +10,7 @@ enum _:TOTAL_FORWARDS
 	FORWARD_INFECTED,
 	FORWARD_ZOMBIE_APPEAR,
 	FORWARD_ZOMBIE_RELEASE,
+	FORWARD_GAME_STARTED_PRE,
 	FORWARD_GAME_STARTED,
 	FORWARD_DISCONNECT
 }
@@ -123,6 +124,7 @@ public plugin_init()
 	g_iForwards[FORWARD_INFECTED] = CreateMultiForward("ze_user_infected", ET_IGNORE, FP_CELL, FP_CELL)
 	g_iForwards[FORWARD_ZOMBIE_APPEAR] = CreateMultiForward("ze_zombie_appear", ET_IGNORE)
 	g_iForwards[FORWARD_ZOMBIE_RELEASE] = CreateMultiForward("ze_zombie_release", ET_IGNORE)
+	g_iForwards[FORWARD_GAME_STARTED_PRE] = CreateMultiForward("ze_game_started_pre", ET_CONTINUE)
 	g_iForwards[FORWARD_GAME_STARTED] = CreateMultiForward("ze_game_started", ET_IGNORE)
 	g_iForwards[FORWARD_DISCONNECT] = CreateMultiForward("ze_player_disconnect", ET_CONTINUE, FP_CELL)
 	
@@ -305,6 +307,13 @@ public Fw_PlayerSpawn_Post(id)
 
 public New_Round()
 {
+	ExecuteForward(g_iForwards[FORWARD_GAME_STARTED_PRE], g_iFwReturn)
+	
+	if (g_iFwReturn > 0)
+	{
+		return
+	}
+	
 	// Remove All tasks in the New Round
 	remove_task(TASK_COUNTDOWN)
 	remove_task(TASK_COUNTDOWN2)

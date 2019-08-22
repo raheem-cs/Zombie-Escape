@@ -109,6 +109,20 @@ forward ze_zombie_release();
 /*
 * Description:	Called every new round if game started.
 *
+* @return		To block zombie escape round return 1, To continue zombie escape mod return 0.
+*
+* @note			This called every new round only if the game started
+* 				which mean players is higher than required player so game already started.
+* 				this native somehow similar to new round event but only called when game started.
+*				You can use it to block zombie escape mod round, and use your own round like Nemesis round
+*				make sure to use this after first round, never return 1 in first round.
+*
+*/
+forward ze_game_started_pre();
+
+/*
+* Description:	Called every new round if game started.
+*
 * @return		Returns here useless, it will not affect the real new round event.
 *
 * @note			This called every new round only if the game started
