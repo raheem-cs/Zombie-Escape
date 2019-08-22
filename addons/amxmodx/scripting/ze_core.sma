@@ -129,6 +129,9 @@ public plugin_init()
 	// Hud Messages
 	g_iReleaseNotice = CreateHudSyncObj()
 	
+	// Registering Messages
+	register_message(get_user_msgid("TeamScore"), "Message_Teamscore")
+	
 	// Sequential files (.txt)
 	register_dictionary("zombie_escape.txt")
 	
@@ -796,6 +799,18 @@ public plugin_end()
 	if (get_pcvar_num(g_pCvarSmartRandom))
 	{
 		ArrayDestroy(g_aChosenPlayers)
+	}
+}
+
+public Message_Teamscore()
+{
+	new szTeam[2]
+	get_msg_arg_string(1, szTeam, charsmax(szTeam))
+	
+	switch (szTeam[0])
+	{
+		case 'C': set_msg_arg_int(2, get_msg_argtype(2), g_iHumansScore)
+		case 'T': set_msg_arg_int(2, get_msg_argtype(2), g_iZombiesScore)
 	}
 }
 
