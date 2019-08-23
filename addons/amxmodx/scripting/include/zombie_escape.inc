@@ -386,7 +386,7 @@ native ze_get_user_knockback(id)
 *						false	| If this player not connected
 *
 */
-ze_set_user_knockback(id, Float:flKnockback)
+native ze_set_user_knockback(id, Float:flKnockback)
 
 /*
 * Description:	Reset user knockback to use value from CVAR.
@@ -397,7 +397,30 @@ ze_set_user_knockback(id, Float:flKnockback)
 *				false	| If this player not connected
 *
 */
-ze_reset_user_knockback(id)
+native ze_reset_user_knockback(id)
+
+/*
+* Description:			Set user gravity.
+*
+* @param id				Client index.
+* @param iGravity		Gravity value.	
+*
+* @return				true	| If set successfully
+*						false	| If this player not connected
+*
+*/
+native ze_set_user_gravity(id, iGravity)
+
+/*
+* Description:	Reset user gravity to use value from CVAR.
+*
+* @param id		Client index.
+*
+* @return		true	| If reset successfully
+*				false	| If this player not connected
+*
+*/
+native ze_reset_user_gravity(id)
 
 /*
 * Description:	Get player escape coins.

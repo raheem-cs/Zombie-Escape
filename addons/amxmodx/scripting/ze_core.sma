@@ -47,6 +47,7 @@ new g_iAliveHumansNum,
 	g_iRoundNum,
 	g_iHSpeedFactor[33],
 	g_iZSpeedSet[33],
+	g_iUserGravity[33],
 	bool:g_bGameStarted, 
 	bool:g_bIsZombie[33], 
 	bool:g_bIsZombieFrozen[33], 
@@ -56,6 +57,7 @@ new g_iAliveHumansNum,
 	bool:g_bZSpeedUsed[33],
 	bool:g_bEndCalled,
 	bool:g_bIsKnockBackUsed[33],
+	bool:g_bIsGravityUsed[33],
 	Float:g_flReferenceTime,
 	Float:g_flUserKnockback[33]
 
@@ -101,6 +103,9 @@ public plugin_natives()
 	register_native("ze_get_user_knockback", "native_ze_get_user_knockback", 1)
 	register_native("ze_set_user_knockback", "native_ze_set_user_knockback", 1)
 	register_native("ze_reset_user_knockback", "native_ze_reset_user_knockback", 1)
+	
+	register_native("ze_set_user_gravity", "native_ze_set_user_gravity", 1)
+	register_native("ze_reset_user_gravity", "native_ze_reset_user_gravity", 1)
 }
 
 public plugin_init()
@@ -649,7 +654,9 @@ public client_disconnected(id)
 	g_bHSpeedUsed[id] = false
 	g_bZSpeedUsed[id] = false
 	g_bIsKnockBackUsed[id] = false
+	g_bIsGravityUsed[id] = false
 	g_flUserKnockback[id] = 0.0
+	g_iUserGravity[id] = 0
 	
 	// Execute our disconnected forward
 	ExecuteForward(g_iForwards[FORWARD_DISCONNECT], g_iFwReturn, id)
@@ -772,7 +779,7 @@ public Set_User_Human(id)
 	
 	g_bIsZombie[id] = false
 	set_entvar(id, var_health, get_pcvar_float(g_pCvarHumanHealth))
-	set_entvar(id, var_gravity, get_pcvar_float(g_pCvarHumanGravity)/800.0)
+	set_entvar(id, var_gravity, float(g_bIsGravityUsed[id] ? g_iUserGravity[id]:get_pcvar_num(g_pCvarHumanGravity))/800.0)
 	ExecuteForward(g_iForwards[FORWARD_HUMANIZED], g_iFwReturn, id)
 	
 	// Reset Nightvision (Useful for antidote, so when someone use sethuman native the nightvision also reset)
@@ -789,7 +796,7 @@ public Set_User_Zombie(id)
 	
 	g_bIsZombie[id] = true
 	set_entvar(id, var_health, get_pcvar_float(g_pCvarZombieHealth))
-	set_entvar(id, var_gravity, get_pcvar_float(g_pCvarZombieGravity)/800.0)
+	set_entvar(id, var_gravity, float(g_bIsGravityUsed[id] ? g_iUserGravity[id] : get_pcvar_num(g_pCvarZombieGravity))/800.0)
 	rg_remove_all_items(id)
 	rg_give_item(id, "weapon_knife", GT_APPEND)
 	ExecuteForward(g_iForwards[FORWARD_INFECTED], g_iFwReturn, id, 0)
@@ -987,5 +994,34 @@ public native_ze_reset_user_knockback(id)
 
 	g_bIsKnockBackUsed[id] = false
 	g_flUserKnockback[id] = 0.0
+	return true
+}
+
+public native_ze_set_user_gravity(id, iGravity)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false
+	}
+	
+	g_bIsGravityUsed[id] = true
+	g_iUserGravity[id] = iGravity
+	set_entvar(id, var_gravity, float(iGravity) / 800.0)
+
+	return true
+}
+
+public native_ze_reset_user_gravity(id)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false
+	}
+
+	g_bIsGravityUsed[id] = false
+	set_entvar(id, var_gravity, float(g_bIsZombie[id] ? get_pcvar_num(g_pCvarZombieGravity):get_pcvar_num(g_pCvarHumanGravity)) / 800.0)
+
 	return true
 }
