@@ -58,6 +58,7 @@ new g_iAliveHumansNum,
 	bool:g_bEndCalled,
 	bool:g_bIsKnockBackUsed[33],
 	bool:g_bIsGravityUsed[33],
+	bool:g_bEnteredNotChoosed[33],
 	Float:g_flReferenceTime,
 	Float:g_flUserKnockback[33]
 
@@ -121,6 +122,7 @@ public plugin_init()
 	RegisterHookChain(RG_RoundEnd, "Event_RoundEnd_Pre", 0)
 	RegisterHookChain(RG_CBasePlayer_ResetMaxSpeed, "Fw_RestMaxSpeed_Post", 1)
 	RegisterHookChain(RG_HandleMenu_ChooseTeam, "Fw_HandleMenu_ChooseTeam_Post", 1)
+	RegisterHookChain(RG_HandleMenu_ChooseAppearance, "Fw_HandleMenu_ChoosedAppearance_Post", 1)
 	
 	// Events
 	register_event("HLTV", "New_Round", "a", "1=0", "2=0")
@@ -672,6 +674,8 @@ public client_disconnected(id)
 	g_flUserKnockback[id] = 0.0
 	g_iUserGravity[id] = 0
 	
+	remove_task(id)
+	
 	// Execute our disconnected forward
 	ExecuteForward(g_iForwards[FORWARD_DISCONNECT], g_iFwReturn, id)
 	
@@ -753,10 +757,41 @@ public client_putinserver(id)
 {
 	// Add Delay and Check Conditions To start the Game (Delay needed)
 	set_task(1.0, "Check_AllPlayersNumber", _, _, _, "b")
+	
+	// Check for dead terrorists - Bug fix
+	set_task(0.1, "CheckTerrorists", id, _, _, "b")
+}
+
+public CheckTerrorists(id)
+{
+	if (g_bEnteredNotChoosed[id] && g_bGameStarted)
+	{
+		if (is_user_connected(id))
+		{
+			rg_join_team(id, TEAM_CT) // Force user to choose CT
+			g_bEnteredNotChoosed[id] = false
+		}
+	}
+}
+
+public Fw_HandleMenu_ChoosedAppearance_Post(const index, const slot)
+{
+	g_bEnteredNotChoosed[index] = false
 }
 
 public Fw_HandleMenu_ChooseTeam_Post(id, MenuChooseTeam:iSlot)
 {
+	// Fixing Dead-T restarting the round
+	if (iSlot == MenuChoose_T) // Choosed T, Still not choosed a player
+	{
+		g_bEnteredNotChoosed[id] = true
+	}
+	
+	if ((iSlot == MenuChoose_AutoSelect) && (get_member(id, m_iTeam) == TEAM_TERRORIST))
+	{
+		g_bEnteredNotChoosed[id] = true
+	}
+	
 	// Add Delay and Check Conditions To start the Game (Delay needed)
 	set_task(1.0, "Check_AllPlayersNumber", _, _, _, "b")
 }
