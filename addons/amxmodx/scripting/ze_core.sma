@@ -651,7 +651,7 @@ public Check_RoundTimeleft()
 {
 	new Float:flRoundTimeLeft = (g_flReferenceTime + float(g_iRoundTime)) - get_gametime()
 	
-	if (floatround(flRoundTimeLeft) == 0 && !g_bIsRoundEnding)
+	if (floatround(flRoundTimeLeft) == 0 && !g_bIsRoundEnding && !get_member_game(m_bFreezePeriod))
 	{
 		// Round is Ending
 		g_bIsRoundEnding = true
