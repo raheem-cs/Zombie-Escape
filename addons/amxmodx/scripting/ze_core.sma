@@ -318,6 +318,8 @@ public Fw_PlayerSpawn_Post(id)
 
 public New_Round()
 {
+	g_iRoundNum++
+	
 	ExecuteForward(g_iForwards[FORWARD_GAME_STARTED_PRE], g_iFwReturn)
 	
 	if (g_iFwReturn > 0)
@@ -348,8 +350,6 @@ public New_Round()
 	set_task(1.0, "Countdown_Start", TASK_COUNTDOWN, _, _, "b")
 	ze_colored_print(0, "%L", LANG_PLAYER, "READY_TO_RUN")
 	ExecuteForward(g_iForwards[FORWARD_GAME_STARTED], g_iFwReturn)
-	
-	g_iRoundNum++
 	
 	// Round Starting
 	g_bIsRoundEnding = false
