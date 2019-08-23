@@ -318,7 +318,10 @@ public Fw_PlayerSpawn_Post(id)
 
 public New_Round()
 {
-	g_iRoundNum++
+	if (g_bGameStarted)
+	{
+		g_iRoundNum++
+	}
 	
 	ExecuteForward(g_iForwards[FORWARD_GAME_STARTED_PRE], g_iFwReturn)
 	
@@ -336,8 +339,19 @@ public New_Round()
 	// Score Message Task
 	set_task(10.0, "Score_Message", TASK_SCORE_MESSAGE, _, _, "b")
 	
-	// 2 is Hardcoded Value, It's Fix for the countdown to work correctly
-	g_iCountDown = get_member_game(m_iIntroRoundTime) - 2
+	if (g_bGameStarted)
+	{
+		if (g_iRoundNum == 1)
+		{
+			// 2 is Hardcoded Value, It's Fix for the countdown to work correctly first round
+			g_iCountDown = get_member_game(m_iIntroRoundTime) - 2
+		}
+		else
+		{
+			// 3 is Hardcoded Value, It's Fix for the countdown to work correctly after first round
+			g_iCountDown = get_member_game(m_iIntroRoundTime) - 3
+		}
+	}
 	
 	if (!g_bGameStarted)
 	{
