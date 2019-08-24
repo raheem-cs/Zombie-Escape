@@ -1,4 +1,4 @@
-[en]
+﻿[en]
 NO_ENOUGH_PLAYERS = !tNo Enough Players!y. !tRequired!y: !t%i!y.
 RUN_NOTICE = Ready for Run. Run After %i Second(s) !
 ZOMBIE_RELEASE = Zombie(s) Will Be Released After: %i Second(s) !
@@ -248,4 +248,67 @@ NO_EXTRA_ITEMS = !tDodaci trenutno nisu dostupni!y.
 
 ITEM_LIMIT = \w[\r%i\d|\r%i\w]
 ITEM_LEVEL = \w[\rLevel\d: \r%i\w]
+ITEM_VIP = \w(\rVIP\w)
+
+[tr]
+NO_ENOUGH_PLAYERS = !tYeterli Oyuncular Yok!y.  !t%i Gereklidir!y.
+RUN_NOTICE = Kacmaya Hazir Ol. %i Saniye Sonra Kac !
+ZOMBIE_RELEASE = Zombiler: %i Saniye Sonra Serbest Edilecekler !
+READY_TO_RUN = !tKacmaya Hazirmisin!y? !gIyi Sanslar !y:)
+ESCAPE_SUCCESS = Kacis Basarili!
+ESCAPE_FAIL = Kacis Basarisiz!
+START_GAME = Oyun Basliyor!
+INFECTION_NOTICE = %s Enfektledi %s !
+SCORE_MESSAGE = Zombiler VS Insanlar^n %i --------- %i
+NO_WINNER = Kacis Esit!
+RANK_INFO = [HAYATTA KALMA MASTER'i]^n[1inci] - %s^n[2inci] - %s^n[3uncu] - %s
+RANK_INFO_LEADER = [Kacis Lideri]^n%s
+
+COINS_INFO = !tMevcut Kacis Paralariniz!y: !g%i
+ESCAPE_SUCCESS_COINS = !tKacis Basarili!y: !t+!g%i !tKacis Paralar!y!
+HUMAN_INFECTED_COINS = !tInsan Enfektledin!y: !t+!g%i !tKacis Paralar!y!
+
+ZOMBIE_SPEC = Sununda Izliyorsunuz: %s^nSaglik: %i^nSinif: Zombi^nKacis Paralar: %i
+ZOMBIE_SPEC_COMMAS = Sununda Izliyorsunuz: %s^nSaglik: %s^nSinif: Zombi^nKacis Paralar: %i
+
+HUMAN_SPEC = Sununda Izliyorsunuz: %s^nSaglik: %i^nSinif: Human^nKacis Paralar: %i
+HUMAN_SPEC_COMMAS = Sununda Izliyorsunuz: %s^nSaglik: %s^nSinif: Human^nKacis Paralar: %i
+
+HUMAN_SPEC_LEADER = Sununda Izliyorsunuz: %s^nSaglik: %i^nSinif: Escape Leader^nKacis Paralar: %i
+HUMAN_SPEC_COMMAS_LEADER = Sununda Izliyorsunuz: %s^nSaglik: %s^nSinif: Escape Leader^nKacis Paralar: %i
+
+ZOMBIE = Saglik: %i | Sinif: Zombi | Kacis Paralar: %i
+ZOMBIE_COMMAS = Saglik: %s | Sinif: Zombi | Kacis Paralar: %i
+
+HUMAN_LEADER = Saglik: %i | Sinif: Escape Leader | Kacis Paralar: %i
+HUMAN_LEADER_COMMAS = Saglik: %s | Sinif: Escape Leader | Kacis Paralar: %i
+
+HUMAN = Saglik: %i | Sinif: Human | Kacis Paralar: %i
+HUMAN_COMMAS = Saglik: %s | Sinif: Human | Kacis Paralar: %i
+
+BUY_ENABLED = !tSenin menu'n bir daha Etkinlesmis!y.
+RE_ENABLE_MENU = !tMenu'yu bir daha Etkinlestirmek icin /enable yaz yada M'ye bas!y.
+ALREADY_BOUGHT = !tSen gercekten bir silah Almissin!y!
+DEAD_CANT_BUY_WEAPON = !tOlmusken bir silah Alamazsin!y.
+NO_BUY_ZOMBIE = !tZombie'iken silah Alamazsin!y.
+BUY_MENU_TIME_EXPIRED = !tSilah alma menu'su vakti bitti!y.
+MENU_PRIMARY_TITLE = Birincil Silahlar
+MENU_SECONDARY_TITLE = Ikincil Silahlar
+MENU_AUTOSELECT = Hatirla?
+SAVE_YES = Evet
+SAVE_NO = Hayir
+NEXT = Sonraki
+BACK = Onceki
+EXIT = Exit
+
+MAIN_MENU_TITLE = [ZE] Ana Menu
+MENU_EXTRABUY = Extra Ogeler Al
+MENU_WEAPONBUY = Silah Al
+MENU_WEAPONBUY_RE_ENABLE = Silah Alma Menu'su Etkinlestir
+
+BUY_EXTRAITEM = Extra Ogeler
+NO_EXTRA_ITEMS = !tSu anda sana Extra Ogeler Yok!y.
+
+ITEM_LIMIT = \w[\r%i\d|\r%i\w]
+ITEM_LEVEL = \w[\rSeviye\d: \r%i\w]
 ITEM_VIP = \w(\rVIP\w)
