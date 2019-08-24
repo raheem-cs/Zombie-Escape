@@ -1,6 +1,6 @@
 # Zombie Escape Mod
 
-[![Mod](https://img.shields.io/badge/Version-1.4-red.svg)](https://escapers-zone.net/viewtopic.php?f=6&t=6)
+[![Mod](https://img.shields.io/badge/Version-1.5-green)](https://escapers-zone.net/viewtopic.php?f=6&t=6)
 
 Zombie Escape Mod for Counter-Strike 1.6, This Mod uses ReHLDS/ReGameDLL/ReAPI.
 
