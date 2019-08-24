@@ -71,8 +71,16 @@ public plugin_init()
 
 public ze_game_started()
 {
-	// 2 Is hard Coded Value
-	g_iCountDown = get_member_game(m_iIntroRoundTime) - 2
+	if (ze_get_round_number() == 1)
+	{
+		// 2 is Hardcoded Value, It's Fix for the countdown to work correctly first round
+		g_iCountDown = get_member_game(m_iIntroRoundTime) - 2
+	}
+	else
+	{
+		// 3 is Hardcoded Value, It's Fix for the countdown to work correctly after first round
+		g_iCountDown = get_member_game(m_iIntroRoundTime) - 3
+	}
 	
 	set_task(1.0, "Countdown_Start", TASK_COUNTDOWN, _, _, "b")
 }
