@@ -7,7 +7,7 @@ new const g_szLogFile[] = "Escape-Coins.log" // MySQL Errors log file
 // MySQL Table
 new const g_szTable[] = 
 " \
-	CREATE TABLE IF NOT EXISTS `Escape_Coins` \
+	CREATE TABLE IF NOT EXISTS `zombie_escape` \
 	( \
 		`SteamID` varchar(34) NOT NULL, \
 		`EC` int(16) NOT NULL, \
@@ -271,7 +271,7 @@ LoadCoins(id)
 	else
 	{
 		new szQuery[128], szData[5]
-		formatex(szQuery, charsmax(szQuery), "SELECT `EC` FROM `Escape_Coins` WHERE ( `SteamID` = '%s' );", szAuthID)
+		formatex(szQuery, charsmax(szQuery), "SELECT `EC` FROM `zombie_escape` WHERE ( `SteamID` = '%s' );", szAuthID)
      
 		num_to_str(id, szData, charsmax(szData))
 		SQL_ThreadQuery(g_hTuple, "QuerySelectData", szQuery, szData, charsmax(szData))
@@ -298,7 +298,7 @@ public QuerySelectData(iFailState, Handle:hQuery, szError[], iError, szData[])
 		// Insert his data to our database
 		new szQuery[128]
 		
-		formatex(szQuery, charsmax(szQuery), "INSERT INTO `Escape_Coins` (`SteamID`, `EC`) VALUES ('%s', '%d');", szAuthID, g_iEscapeCoins[id])
+		formatex(szQuery, charsmax(szQuery), "INSERT INTO `zombie_escape` (`SteamID`, `EC`) VALUES ('%s', '%d');", szAuthID, g_iEscapeCoins[id])
 		SQL_ThreadQuery(g_hTuple, "QueryInsertData", szQuery)
 		
 		return
@@ -345,7 +345,7 @@ SaveCoins(id)
 	else
 	{
 		new szQuery[128]
-		formatex(szQuery, charsmax(szQuery), "UPDATE `Escape_Coins` SET `EC` = '%d' WHERE `SteamID` = '%s';", g_iEscapeCoins[id], szAuthID)
+		formatex(szQuery, charsmax(szQuery), "UPDATE `zombie_escape` SET `EC` = '%d' WHERE `SteamID` = '%s';", g_iEscapeCoins[id], szAuthID)
 		SQL_ThreadQuery(g_hTuple, "QueryUpdateData", szQuery)
 	}
 }
