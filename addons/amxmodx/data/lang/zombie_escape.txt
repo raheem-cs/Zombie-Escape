@@ -1,4 +1,4 @@
-﻿[en]
+[en]
 NO_ENOUGH_PLAYERS = !tNo Enough Players!y. !tRequired!y: !t%i!y.
 RUN_NOTICE = Ready for Run. Run After %i Second(s) !
 ZOMBIE_RELEASE = Zombie(s) Will Be Released After: %i Second(s) !
@@ -311,4 +311,67 @@ NO_EXTRA_ITEMS = !tSu anda sana Extra Ogeler Yok!y.
 
 ITEM_LIMIT = \w[\r%i\d|\r%i\w]
 ITEM_LEVEL = \w[\rSeviye\d: \r%i\w]
+ITEM_VIP = \w(\rVIP\w)
+
+[ru]
+NO_ENOUGH_PLAYERS = !tНедостаточно игроков!y. !tНужно!y: !t%i!y.
+RUN_NOTICE = Все готовы. Забег начинается через %i секунд !
+ZOMBIE_RELEASE = Первые зомби через: %i секунд !
+READY_TO_RUN = !tВы готовы!y? !gУдачи !y:)
+ESCAPE_SUCCESS = Побег осуществлен!
+ESCAPE_FAIL = Побег провалился!
+START_GAME = Игра началась!
+INFECTION_NOTICE = %s заразил %s !
+SCORE_MESSAGE = Зомби VS Люди^n %i --------- %i
+NO_WINNER = Ничья!
+RANK_INFO = [МАСТЕР ВЫЖИВАНИЯ]^n[1ый] - %s^n[2ой] - %s^n[3ий] - %s
+RANK_INFO_LEADER = [Лидер Побега]^n%s
+
+COINS_INFO = !tТекущий баланс монет!y: !g%i
+ESCAPE_SUCCESS_COINS = !tПобег осуществлен!y: !t+!g%i !tМонет!y!
+HUMAN_INFECTED_COINS = !tЗаразил человека!y: !t+!g%i !tМонет!y!
+
+ZOMBIE_SPEC = Наблюдение: %s^nHP: %i^nКласс: Зомби^nМонет: %i
+ZOMBIE_SPEC_COMMAS = Наблюдение: %s^nHP: %s^nКласс: Зомби^nМонет: %i
+
+HUMAN_SPEC = Наблюдение: %s^nHP: %i^nКласс: Человек^nМонет: %i
+HUMAN_SPEC_COMMAS = Наблюдение: %s^nHP: %s^nКласс: Человек^Монет: %i
+
+HUMAN_SPEC_LEADER = Наблюдение: %s^nHP: %i^nКласс: Лидер Побега^nМонет: %i
+HUMAN_SPEC_COMMAS_LEADER = Наблюдение: %s^nHP: %s^nКласс: Лидер Побега^nМонет: %i
+
+ZOMBIE = HP: %i | Класс: Зомби | Монет: %i
+ZOMBIE_COMMAS = HP: %s | Класс: Зомби | Монет: %i
+
+HUMAN_LEADER = HP: %i | Класс: Лидер Побега | Монет: %i
+HUMAN_LEADER_COMMAS = HP: %s | Класс: Лидер Побега | Монет: %i
+
+HUMAN = HP: %i | Класс: Человек | Монет: %i
+HUMAN_COMMAS = HP: %s | Класс: Человек | Монет: %i
+
+BUY_ENABLED = !tВаше МЕНЮ было восстановлено!y.
+RE_ENABLE_MENU = !tнапиши в чате /enable или нажми M чтобы включить МЕНЮ!y.
+ALREADY_BOUGHT = !tТы уже купил Оружие!y!
+DEAD_CANT_BUY_WEAPON = !tТы не можешь покупать когда мертв!y.
+NO_BUY_ZOMBIE = !tТы не можешь это покупать если ты Зомби!y.
+BUY_MENU_TIME_EXPIRED = !tВремя покупки закончилось!y.
+MENU_PRIMARY_TITLE = Винтовки
+MENU_SECONDARY_TITLE = Пистолеты
+MENU_AUTOSELECT = Запомнить выбор?
+SAVE_YES = Да
+SAVE_NO = Нет
+NEXT = След
+BACK = Назад
+EXIT = Выход
+
+MAIN_MENU_TITLE = [ZE] Главное меню
+MENU_EXTRABUY = Купить Экстра-Предметы
+MENU_WEAPONBUY = Купить Оружие
+MENU_WEAPONBUY_RE_ENABLE = Вернуть меню выбора оружия
+
+BUY_EXTRAITEM = Экстра-Предметы
+NO_EXTRA_ITEMS = !tЭкстра-Предметы пока недоступны!y.
+
+ITEM_LIMIT = \w[\r%i\d|\r%i\w]
+ITEM_LEVEL = \w[\rУровень\d: \r%i\w]
 ITEM_VIP = \w(\rVIP\w)
