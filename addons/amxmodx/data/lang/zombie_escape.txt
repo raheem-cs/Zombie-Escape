@@ -375,3 +375,66 @@ NO_EXTRA_ITEMS = !tЭкстра-Предметы пока недоступны!y
 ITEM_LIMIT = \w[\r%i\d|\r%i\w]
 ITEM_LEVEL = \w[\rУровень\d: \r%i\w]
 ITEM_VIP = \w(\rVIP\w)
+
+[ro]
+NO_ENOUGH_PLAYERS = !tPrea putini jucatori!y. !tJucatori necesari!y: !t%i!y.
+RUN_NOTICE = Fiti gata pentru evadare. Fugiti Dupa %i Secunde !
+ZOMBIE_RELEASE = Zombii Vor fi eliberati peste: %i Secunde !
+READY_TO_RUN = !tEsti gata pentru fuga!y? !gMult noroc !y:)
+ESCAPE_SUCCESS = Evadare cu Succes!
+ESCAPE_FAIL = Evadare Esuata!
+START_GAME = Incepe Jocul!
+INFECTION_NOTICE = %s l-a infectat pe %s !
+SCORE_MESSAGE = Zombii VS Oameni^n %i --------- %i
+NO_WINNER = Egalitate!
+RANK_INFO = [MAESTRII SUPRAVIETUITORI]^n[1st] - %s^n[2nd] - %s^n[3rd] - %s
+RANK_INFO_LEADER = [Liderul Evadarii]^n%s
+
+COINS_INFO = !tAi!y !g%i !yEscape Coins!t!
+ESCAPE_SUCCESS_COINS = !tEvadare cu Succes!y: !t+!g%i !tEscape Coins!y!
+HUMAN_INFECTED_COINS = !tOameni Infectati!y: !t+!g%i !tEscape Coins!y!
+
+ZOMBIE_SPEC = Spectatezi pe: %s^nHP: %i^nClasa: Zombi^nEscape Coins: %i
+ZOMBIE_SPEC_COMMAS = Spectatezi pe: %s^nHP: %s^nClasa: Zombi^nEscape Coins: %i
+
+HUMAN_SPEC = Spectatezi pe: %s^nHP: %i^nClasa: Om^nEscape Coins: %i
+HUMAN_SPEC_COMMAS = Spectatezi pe: %s^nHP: %s^nClasa: Om^nEscape Coins: %i
+
+HUMAN_SPEC_LEADER = Spectatezi pe: %s^nHP: %i^nClasa: Liderul Evadarii^nEscape Coins: %i
+HUMAN_SPEC_COMMAS_LEADER = Spectatezi pe: %s^nHP: %s^nClasa: Liderul Evadarii^nEscape Coins: %i
+
+ZOMBIE = HP: %i | Clasa: Zombi | Escape Coins: %i
+ZOMBIE_COMMAS = HP: %s | Clasa: Zombi | Escape Coins: %i
+
+HUMAN_LEADER = HP: %i | Clasa:Liderul Evadarii | Escape Coins: %i
+HUMAN_LEADER_COMMAS = HP: %s | Clasa: Liderul Evadarii | Escape Coins: %i
+
+HUMAN = HP: %i | Clasa: Om | Escape Coins: %i
+HUMAN_COMMAS = HP: %s | Clasa: Om | Escape Coins: %i
+
+BUY_ENABLED = !tMeniul tau a fost reactivat!y.
+RE_ENABLE_MENU = !tTasteaza in chat /enable sau apasa tasta M pentru a reactiva Meniul Pentru Arme!y.
+ALREADY_BOUGHT = !tDeja ti-ai cumparat armele Secundare si Primare!y!
+DEAD_CANT_BUY_WEAPON = !tNu poti cumpara cand esti mort!y.
+NO_BUY_ZOMBIE = !tNu poti cumpara cand esti Zombi!y.
+BUY_MENU_TIME_EXPIRED = !tDurata de cumparare a expirat!y.
+MENU_PRIMARY_TITLE = Arme Primare
+MENU_SECONDARY_TITLE = Arme Secundare
+MENU_AUTOSELECT = Tine minte?
+SAVE_YES = Da
+SAVE_NO = Nu
+NEXT = Urmatorul
+BACK = Inapoi
+EXIT = Iesire
+
+MAIN_MENU_TITLE = [ZE] Meniul principal
+MENU_EXTRABUY = Cumpara Obiecte Extra
+MENU_WEAPONBUY = Cumpara Arme
+MENU_WEAPONBUY_RE_ENABLE = Reactiveaza Meniul de Arme
+
+BUY_EXTRAITEM = Obiecte Extra
+NO_EXTRA_ITEMS = !tNiciun obiect extra disponibil pentru tine acum!y.
+
+ITEM_LIMIT = \w[\r%i\d|\r%i\w]
+ITEM_LEVEL = \w[\rNivel\d: \r%i\w]
+ITEM_VIP = \w(\rVIP\w)
