@@ -23,7 +23,8 @@ new g_iForwards[TOTAL_FORWARDS],
 new Array:g_szItemRealName, 
 	Array:g_szItemName,  
 	Array:g_iItemCost,
-	Array:g_iItemLimit
+	Array:g_iItemLimit,
+	Array:g_iItemGlobalLimit
 
 new g_iItemCount, 
 	g_szAdditionalMenuText[64],
@@ -50,6 +51,7 @@ public plugin_natives()
 	register_native("ze_get_item_cost", "native_ze_get_item_cost")
 	register_native("ze_add_text_to_item", "native_ze_add_text_to_item")
 	register_native("ze_get_item_limit", "native_ze_get_item_limit")
+	register_native("ze_get_item_global_limit", "native_ze_get_item_global_limit")
 	register_native("ze_is_valid_itemid", "native_ze_is_valid_itemid")
 	register_native("ze_get_item_name", "native_ze_get_item_name")
 	
@@ -57,6 +59,7 @@ public plugin_natives()
 	g_szItemName = ArrayCreate(32, 1)
 	g_iItemCost = ArrayCreate(1, 1)
 	g_iItemLimit = ArrayCreate(1, 1)
+	g_iItemGlobalLimit = ArrayCreate(1, 1)
 }
 
 public client_disconnected(id)
@@ -187,7 +190,7 @@ Buy_Item(id, itemid, ignorecost = 0)
 // Natives
 public native_ze_register_item(plugin_id, num_params)
 {
-	new szItem_Name[32], iItem_Cost, iItem_Limit
+	new szItem_Name[32], iItem_Cost, iItem_Limit, iItem_Global_Limit
 	
 	// Get the Data from first Parameter in the native (Item Name)
 	get_string(1, szItem_Name, charsmax(szItem_Name))
@@ -238,6 +241,11 @@ public native_ze_register_item(plugin_id, num_params)
 	if (!amx_load_setting_int(ZE_EXTRAITEM_FILE, szItemRealName, "LIMIT", iItem_Limit))
 		amx_save_setting_int(ZE_EXTRAITEM_FILE, szItemRealName, "LIMIT", iItem_Limit)
 	ArrayPushCell(g_iItemLimit, iItem_Limit)
+	
+	// Global Limit
+	if (!amx_load_setting_int(ZE_EXTRAITEM_FILE, szItemRealName, "GLOBAL LIMIT", iItem_Global_Limit))
+		amx_save_setting_int(ZE_EXTRAITEM_FILE, szItemRealName, "GLOBAL LIMIT", iItem_Global_Limit)
+	ArrayPushCell(g_iItemGlobalLimit, iItem_Global_Limit)
 	
 	g_iItemCount++
 	return g_iItemCount - 1
@@ -360,4 +368,17 @@ public native_ze_get_item_name(plugin_id, num_params)
 	new iLen = get_param(3)
 	set_string(2, szName, iLen)
 	return true;
+}
+
+public native_ze_get_item_global_limit(plugin_id, num_params)
+{
+	new item_id = get_param(1)
+	
+	if (item_id < 0 || item_id >= g_iItemCount)
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid item id (%d)", item_id)
+		return ZE_WRONG_ITEM;
+	}
+	
+	return ArrayGetCell(g_iItemGlobalLimit, item_id);
 }

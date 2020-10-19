@@ -641,6 +641,19 @@ native ze_add_text_to_item(const szText[]);
 native ze_get_item_limit(iItemid);
 
 /*
+* Description:		Return item global limit.
+*
+* @param iItemid	Item id.
+*
+* @return			Global Limit  | If this itemid is valid.
+*					ZE_WRONG_ITEM | If this itemid is invalid.
+*
+* @note				ZE_WRONG_ITEM is defined as -1
+*
+*/
+native ze_get_item_global_limit(iItemid);
+
+/*
 * Description:		Check if this item id is valid or not.
 *
 * @param iItemid	Item id to check.
