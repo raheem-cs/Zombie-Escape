@@ -280,6 +280,14 @@ public Fw_RestMaxSpeed_Post(id)
 			return HC_CONTINUE
 		}
 	}
+	else
+	{
+		if (g_bZombieFreezeTime)
+		{
+			// Fix for zombie weapon switching that can give him small speed in zombie freeze time
+			set_entvar(id, var_maxspeed, 1.0)
+		}
+	}
 	
 	return HC_SUPERCEDE
 }
