@@ -51,7 +51,7 @@ public plugin_init()
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
 	
 	// Set Lighting Task
-	set_task(1.0, "Lighting_Style", _, _, _, "b")
+	set_task(0.1, "Lighting_Style", _, _, _, "b")
 }
 
 public Lighting_Style()
@@ -62,10 +62,50 @@ public Lighting_Style()
 	for (new id = 1; id <= g_iMaxClients; id++)
 	{
 		// Not Set For Un-Connected or Zombies
-		if (!is_user_connected(id) || ze_is_user_zombie(id))
+		if (!is_user_connected(id))
 			continue
 		
-		Set_MapLightStyle(id, g_szLightStyle)
+		if (!is_user_alive(id))
+		{
+			new iCamMode = get_entvar(id, var_iuser1)
+			new iSpecId = get_entvar(id, var_iuser2)
+			
+			if (iCamMode == OBS_ROAMING)
+			{
+				Set_NightVision(id, 0, 0, 0x0000, 0, 0, 0, 0)
+				Set_MapLightStyle(id, g_szLightStyle)
+			}
+			
+			if (!is_user_alive(iSpecId))
+				continue
+			
+			if (ze_is_user_zombie(iSpecId))
+			{
+				if (g_bNvgOn[iSpecId])
+				{
+					Set_MapLightStyle(id, "z")
+					Set_NightVision(id, 0, 0, 0x0004, get_pcvar_num(g_pCvarZombieNVisionColors[Red]), get_pcvar_num(g_pCvarZombieNVisionColors[Green]), get_pcvar_num(g_pCvarZombieNVisionColors[Blue]), get_pcvar_num(g_pCvarNVisionDensity))
+				}
+				else
+				{
+					Set_NightVision(id, 0, 0, 0x0000, 0, 0, 0, 0)
+					Set_MapLightStyle(id, g_szLightStyle)
+				}
+			}
+			else
+			{
+				Set_NightVision(id, 0, 0, 0x0000, 0, 0, 0, 0)
+				Set_MapLightStyle(id, g_szLightStyle)
+			}
+		}
+		else
+		{
+			if (ze_is_user_zombie(id))
+				continue
+			
+			Set_NightVision(id, 0, 0, 0x0000, 0, 0, 0, 0)
+			Set_MapLightStyle(id, g_szLightStyle)
+		}
 	}
 }
 
@@ -73,8 +113,8 @@ public ze_user_infected(iVictim, iInfector)
 {
 	if (get_pcvar_num(g_pCvarZombieAutoNVision) != 0)
 	{
-		Set_NightVision(iVictim, 0, 0, 0x0004, get_pcvar_num(g_pCvarZombieNVisionColors[Red]), get_pcvar_num(g_pCvarZombieNVisionColors[Green]), get_pcvar_num(g_pCvarZombieNVisionColors[Blue]), get_pcvar_num(g_pCvarNVisionDensity))
 		Set_MapLightStyle(iVictim, "z")
+		Set_NightVision(iVictim, 0, 0, 0x0004, get_pcvar_num(g_pCvarZombieNVisionColors[Red]), get_pcvar_num(g_pCvarZombieNVisionColors[Green]), get_pcvar_num(g_pCvarZombieNVisionColors[Blue]), get_pcvar_num(g_pCvarNVisionDensity))
 		g_bNvgOn[iVictim] = true
 		PlaySound(iVictim, szNvgSound[1])
 	}
@@ -97,15 +137,15 @@ public Cmd_NvgToggle(id)
 			if(!g_bNvgOn[id])
 			{
 				g_bNvgOn[id] = true
-				Set_NightVision(id, 0, 0, 0x0004, get_pcvar_num(g_pCvarZombieNVisionColors[Red]), get_pcvar_num(g_pCvarZombieNVisionColors[Green]), get_pcvar_num(g_pCvarZombieNVisionColors[Blue]), get_pcvar_num(g_pCvarNVisionDensity))
 				Set_MapLightStyle(id, "z")
+				Set_NightVision(id, 0, 0, 0x0004, get_pcvar_num(g_pCvarZombieNVisionColors[Red]), get_pcvar_num(g_pCvarZombieNVisionColors[Green]), get_pcvar_num(g_pCvarZombieNVisionColors[Blue]), get_pcvar_num(g_pCvarNVisionDensity))
 				PlaySound(id, szNvgSound[1])
 			}
 			else
 			{
 				g_bNvgOn[id] = false
-				Set_MapLightStyle(id, g_szLightStyle)
 				Set_NightVision(id, 0, 0, 0x0000, 0, 0, 0, 0)
+				Set_MapLightStyle(id, g_szLightStyle)
 				PlaySound(id, szNvgSound[0])
 			}
 		}
@@ -117,7 +157,7 @@ public Fw_PlayerKilled_Post(id)
 	if (g_bNvgOn[id])
 	{
 		g_bNvgOn[id] = false
-		Set_MapLightStyle(id, g_szLightStyle)
 		Set_NightVision(id, 0, 0, 0x0000, 0, 0, 0, 0)
+		Set_MapLightStyle(id, g_szLightStyle)
 	}
 }
