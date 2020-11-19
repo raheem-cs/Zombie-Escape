@@ -404,9 +404,13 @@ public Score_Message(TaskID)
 
 public Countdown_Start(TaskID)
 {
-	// Check if the players Disconnected and there is only one player then remove all messages, and stop tasks
+	// Check if the players Disconnected and there is only one player then remove all messages, and stop tasks (+Stop sounds)
 	if (!g_bGameStarted)
+	{
+		StopSound()
+		remove_task(TaskID) // Remove the task
 		return
+	}
 	
 	if (!g_iCountDown)
 	{

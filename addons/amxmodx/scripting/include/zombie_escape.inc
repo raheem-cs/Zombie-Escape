@@ -20,7 +20,7 @@
 // Team constants, use them in ze_roundend() forward 
 enum
 {
-	ZE_TEAM_ZOMBIE = 1,
+	ZE_TEAM_ZOMBIE = 0,
 	ZE_TEAM_HUMAN
 }
 
@@ -29,6 +29,10 @@ enum
 #define ZE_ITEM_AVAILABLE 0
 #define ZE_ITEM_UNAVAILABLE 1
 #define ZE_ITEM_DONT_SHOW 2
+
+// General forwards return values
+#define ZE_CONTINUE 0
+#define ZE_STOP 1
 
 // Max Extra-Items
 #define MAX_EXTRA_ITEMS 60
@@ -64,13 +68,13 @@ forward ze_user_humanized(id);
 * @param iInfector	Infector index, zombie who will cause the infection.
 * @param iDamage	The blocked damage value.
 *
-* @return			To stop the infection event use:   return 1
-*					To let the infection continue use: return 0
+* @return			To stop the infection event use:   return ZE_STOP
+*					To let the infection continue use: return ZE_CONTINUE
 *
 * @note				This forward will not called on the zombie choose by the server,
 *					only called if player try to infect player.
 *					You can use pre to block the infection or to let it in specific conditions.
-*					Basically return > 0  will stop the infection.
+*					Basically return > ZE_CONTINUE  will stop the infection.
 *			
 */
 forward ze_user_infected_pre(iVictim, iInfector, iDamage);
@@ -109,13 +113,13 @@ forward ze_zombie_release();
 /*
 * Description:	Called every new round if game started.
 *
-* @return		To block zombie escape round return 1, To continue zombie escape mod return 0.
+* @return		To block zombie escape round return ZE_STOP, To continue zombie escape mod return ZE_CONTINUE.
 *
 * @note			This called every new round only if the game started
 *				which mean players is higher than required player so game already started.
 *				this native somehow similar to new round event but only called when game started.
 *				You can use it to block zombie escape mod round, and use your own round like Nemesis round
-*				make sure to use this after first round, never return 1 in first round.
+*				make sure to use this after first round, never return ZE_STOP in first round.
 *
 */
 forward ze_game_started_pre();
@@ -135,8 +139,8 @@ forward ze_game_started();
 /*
 * Description:	Called before zombie get fired by fire nade.
 *
-* @return		Return 1 to stop the fire action, zombie will not get fired.
-*				Return 0 to continue the fire, zombie will be fired.
+* @return		Return ZE_STOP to stop the fire action, zombie will not get fired.
+*				Return ZE_CONTINUE to continue the fire, zombie will be fired.
 *
 * @note			You can use this to stop the fire action at specific conditions.
 *
@@ -146,8 +150,8 @@ forward ze_fire_pre(id);
 /*
 * Description:	Called before zombie get frozen by frost nade.
 *
-* @return		Return 1 to stop the freeze action, zombie will not get frozen.
-*				Return 0 to continue the freeze, zombie will be frozen.
+* @return		Return ZE_STOP to stop the freeze action, zombie will not get frozen.
+*				Return ZE_CONTINUE to continue the freeze, zombie will be frozen.
 *
 * @note			You can use this to stop the freeze action at specific conditions.
 *
@@ -195,8 +199,8 @@ forward ze_select_item_post(id, iItemid, bIgnoreCost);
 *
 * @param id				Client index.
 *
-* @return				return 0 | Will continue Mod game rules.
-*						return 1 | Will block Mod game rules, you can use yours.
+* @return				return ZE_CONTINUE | Will continue Mod game rules.
+*						return ZE_STOP | Will block Mod game rules, you can use yours.
 *
 * @note					Useful in plugins like, replacing disconnected zombie/human if he was last zombie/human.
 *
