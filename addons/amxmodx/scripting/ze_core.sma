@@ -15,7 +15,7 @@ enum _:TOTAL_FORWARDS
 	FORWARD_DISCONNECT
 }
 
-new g_iForwards[TOTAL_FORWARDS], g_iFwReturn, g_iTeam
+new g_iForwards[TOTAL_FORWARDS], g_iFwReturn
 
 // Tasks IDs
 enum
@@ -23,7 +23,7 @@ enum
 	TASK_COUNTDOWN = 1100,
 	TASK_COUNTDOWN2,
 	TASK_SCORE_MESSAGE,
-	FREEZE_ZOMBIES,
+	ZOMBIES_SPEED,
 	ROUND_TIME_LEFT
 }
 
@@ -174,9 +174,6 @@ public plugin_init()
 	g_pCvarColors[Blue] = register_cvar("ze_score_message_blue", "0")
 	g_pCvarRoundEndDelay = register_cvar("ze_round_end_delay", "5")
 	g_pCvarSmartRandom = register_cvar("ze_smart_random", "1")
-	
-	// Default Values
-	g_bGameStarted = false
 	
 	// Static Values
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
@@ -329,6 +326,12 @@ public Fw_PlayerSpawn_Post(id)
 
 public New_Round()
 {
+	// Remove All tasks in the New Round
+	remove_task(TASK_COUNTDOWN)
+	remove_task(TASK_COUNTDOWN2)
+	remove_task(TASK_SCORE_MESSAGE)
+	remove_task(ZOMBIES_SPEED)
+	
 	if (g_bGameStarted)
 	{
 		g_iRoundNum++
@@ -336,39 +339,28 @@ public New_Round()
 	
 	ExecuteForward(g_iForwards[FORWARD_GAME_STARTED_PRE], g_iFwReturn)
 	
-	if (g_iFwReturn > 0)
-	{
+	if (g_iFwReturn >= ZE_STOP)
 		return
-	}
-	
-	// Remove All tasks in the New Round
-	remove_task(TASK_COUNTDOWN)
-	remove_task(TASK_COUNTDOWN2)
-	remove_task(TASK_SCORE_MESSAGE)
-	remove_task(FREEZE_ZOMBIES)
 	
 	// Score Message Task
 	set_task(10.0, "Score_Message", TASK_SCORE_MESSAGE, _, _, "b")
-	
-	if (g_bGameStarted)
-	{
-		if (g_iRoundNum == 1)
-		{
-			// 2 is Hardcoded Value, It's Fix for the countdown to work correctly first round
-			g_iCountDown = get_member_game(m_iIntroRoundTime) - 2
-		}
-		else
-		{
-			// 3 is Hardcoded Value, It's Fix for the countdown to work correctly after first round
-			g_iCountDown = get_member_game(m_iIntroRoundTime) - 3
-		}
-	}
 	
 	if (!g_bGameStarted)
 	{
 		// No Enough Players
 		ze_colored_print(0, "%L", LANG_PLAYER, "NO_ENOUGH_PLAYERS", get_pcvar_num(g_pCvarReqPlayers))
 		return // Block the execution of the blew code 
+	}
+	
+	if (g_iRoundNum == 1)
+	{
+		// 2 is Hardcoded Value, It's Fix for the countdown to work correctly first round
+		g_iCountDown = get_member_game(m_iIntroRoundTime) - 2
+	}
+	else
+	{
+		// 3 is Hardcoded Value, It's Fix for the countdown to work correctly after first round
+		g_iCountDown = get_member_game(m_iIntroRoundTime) - 3
 	}
 	
 	// Game Already started, Countdown now started
@@ -384,12 +376,9 @@ public New_Round()
 // Score Message Task
 public Score_Message(TaskID)
 {
+	// If value is 0, there is nothing to do for this case this means CVAR is disabled
 	switch(get_pcvar_num(g_pCvarScoreMessageType))
 	{
-		case 0: // Disabled
-		{
-			return
-		}
 		case 1: // DHUD
 		{
 			set_dhudmessage(get_pcvar_num(g_pCvarColors[Red]), get_pcvar_num(g_pCvarColors[Green]), get_pcvar_num(g_pCvarColors[Blue]), -1.0, 0.01, 0, 0.0, 9.0)
@@ -416,7 +405,7 @@ public Countdown_Start(TaskID)
 	if (!g_iCountDown)
 	{
 		Choose_Zombies()
-		remove_task(TASK_COUNTDOWN) // Remove the task
+		remove_task(TaskID) // Remove the task
 		return // Block the execution of the blew code
 	}
 	
@@ -455,7 +444,7 @@ public Choose_Zombies()
 		g_bIsZombieFrozen[id] = true
 		g_bZombieFreezeTime = true
 		set_entvar(id, var_maxspeed, 1.0)
-		set_task(0.1, "Freeze_Zombies", FREEZE_ZOMBIES, _, _, "b") // Better than PreThink
+		set_task(0.1, "Zombies_Speed", ZOMBIES_SPEED, _, _, "b") // Better than PreThink
 		ExecuteForward(g_iForwards[FORWARD_ZOMBIE_APPEAR], g_iFwReturn)
 		iZombies++
 	}
@@ -490,7 +479,7 @@ public ReleaseZombie_CountDown(TaskID)
 	if (!g_iCountDown)
 	{
 		ReleaseZombie()
-		remove_task(TASK_COUNTDOWN2)
+		remove_task(TaskID)
 		return
 	}
 	
@@ -515,7 +504,7 @@ public ReleaseZombie()
 	}
 }
 
-public Freeze_Zombies(TaskID)
+public Zombies_Speed(TaskID)
 {
 	for(new id = 1; id <= g_iMaxClients; id++)
 	{
@@ -558,7 +547,7 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 	// Execute pre-infection forward
 	ExecuteForward(g_iForwards[FORWARD_PRE_INFECTED], g_iFwReturn, iVictim, iAttacker, floatround(flDamage))
 	
-	if (g_iFwReturn > 0)
+	if (g_iFwReturn >= ZE_STOP)
 	{
 		return HC_SUPERCEDE
 	}
@@ -588,9 +577,8 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 			// Show Our Message
 			client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
 			
-			// This needed so forward work also to add +1 for Zombies
-			g_iTeam = ZE_TEAM_ZOMBIE
-			ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
+			// Excecute round end forward
+			ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, ZE_TEAM_ZOMBIE)
 		}
 	}
 	
@@ -624,8 +612,7 @@ public Round_End()
 	
 	if ((g_iAliveZombiesNum == 0 && g_bGameStarted) || (g_bDisconnectHumanWin))
 	{
-		g_iTeam = ZE_TEAM_HUMAN
-		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
+		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, ZE_TEAM_HUMAN)
 		client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
 		g_iHumansScore++
 		g_bIsRoundEnding = true
@@ -633,14 +620,13 @@ public Round_End()
 		return // To block Execute the code blew
 	}
 	
-	g_iTeam = ZE_TEAM_ZOMBIE
 	g_iZombiesScore++
 	g_bIsRoundEnding = true
 	
 	// If it's already called one time, don't call it again
 	if (!g_bEndCalled)
 	{
-		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
+		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, ZE_TEAM_ZOMBIE)
 	}
 	
 	client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
@@ -693,7 +679,7 @@ public client_disconnected(id)
 	// Execute our disconnected forward
 	ExecuteForward(g_iForwards[FORWARD_DISCONNECT], g_iFwReturn, id)
 	
-	if (g_iFwReturn > 0)
+	if (g_iFwReturn >= ZE_STOP)
 	{
 		// Here return, function ended here, below won't be executed
 		return
