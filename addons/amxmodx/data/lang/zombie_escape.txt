@@ -11,6 +11,7 @@ SCORE_MESSAGE = Zombies VS Humans^n %i --------- %i
 NO_WINNER = Escape Draw!
 RANK_INFO = [MASTER OF SURVIVAL]^n[1st] - %s^n[2nd] - %s^n[3rd] - %s
 RANK_INFO_LEADER = [Escape Leader]^n%s
+RANK_INFO_NONE = None
 
 COINS_INFO = !tYour Current Escape Coins!y: !g%i
 ESCAPE_SUCCESS_COINS = !tEscape Success!y: !t+!g%i !tEscape Coins!y!
@@ -74,6 +75,7 @@ SCORE_MESSAGE = Zombis VS Humanos^n %i --------- %i
 NO_WINNER = Voce perdeu!
 RANK_INFO = [MESTRE DE SOBREVIVENCIA]^n[1°] - %s^n[2°] - %s^n[3°] - %s
 RANK_INFO_LEADER = [Lider da Fuga]^n%s
+RANK_INFO_NONE = Nenhum
 
 COINS_INFO = !tSeus Coins!y: !g%i
 ESCAPE_SUCCESS_COINS = !tConseguiram Fugir!y: !t+!g%i !tEscape Coins!y!
@@ -137,6 +139,7 @@ SCORE_MESSAGE = Zombie VS Ludzie^n %i --------- %i
 NO_WINNER = Remis!
 RANK_INFO = [Mistrz przetrwania]^n[1st] - %s^n[2nd] - %s^n[3rd] - %s
 RANK_INFO_LEADER = [LIDER UCIECZKI]^n%s
+RANK_INFO_NONE = Żaden
 
 COINS_INFO = !tTwoja aktualna ilosc monet!y: !g%i
 ESCAPE_SUCCESS_COINS = !tUdana ucieczka!y: !t+!g%i !tmonet!y!
@@ -200,6 +203,7 @@ SCORE_MESSAGE = Zombiji VS Ljudi^n %i --------- %i
 NO_WINNER = Bez pobjednika!
 RANK_INFO = [MAJSTOR PREZIVLJAVANJA]^n[1st] - %s^n[2nd] - %s^n[3rd] - %s
 RANK_INFO_LEADER = [Lider bijega]^n%s
+RANK_INFO_NONE = Nijedna
 
 COINS_INFO = !tVas trenutni broj kovanica!y: !g%i
 ESCAPE_SUCCESS_COINS = !tUspješan bijeg!y: !t+!g%i !tKovanica!y!
@@ -263,6 +267,7 @@ SCORE_MESSAGE = Zombiler VS Insanlar^n %i --------- %i
 NO_WINNER = Kacis Esit!
 RANK_INFO = [HAYATTA KALMA MASTER'i]^n[1inci] - %s^n[2inci] - %s^n[3uncu] - %s
 RANK_INFO_LEADER = [Kacis Lideri]^n%s
+RANK_INFO_NONE = Yok
 
 COINS_INFO = !tMevcut Kacis Paralariniz!y: !g%i
 ESCAPE_SUCCESS_COINS = !tKacis Basarili!y: !t+!g%i !tKacis Paralar!y!
@@ -326,6 +331,7 @@ SCORE_MESSAGE = Зомби VS Люди^n %i --------- %i
 NO_WINNER = Ничья!
 RANK_INFO = [МАСТЕР ВЫЖИВАНИЯ]^n[1ый] - %s^n[2ой] - %s^n[3ий] - %s
 RANK_INFO_LEADER = [Лидер Побега]^n%s
+RANK_INFO_NONE = Никто
 
 COINS_INFO = !tТекущий баланс монет!y: !g%i
 ESCAPE_SUCCESS_COINS = !tПобег осуществлен!y: !t+!g%i !tМонет!y!
@@ -389,6 +395,7 @@ SCORE_MESSAGE = Zombii VS Oameni^n %i --------- %i
 NO_WINNER = Egalitate!
 RANK_INFO = [MAESTRII SUPRAVIETUITORI]^n[1st] - %s^n[2nd] - %s^n[3rd] - %s
 RANK_INFO_LEADER = [Liderul Evadarii]^n%s
+RANK_INFO_NONE = Nici unul
 
 COINS_INFO = !tAi!y !g%i !yEscape Coins!t!
 ESCAPE_SUCCESS_COINS = !tEvadare cu Succes!y: !t+!g%i !tEscape Coins!y!

@@ -1,7 +1,6 @@
 #include <zombie_escape>
 
-// You can change this if you need
-static szNone[] = "None"
+#define TASK_MESSAGE 2030
 
 enum
 {
@@ -40,9 +39,6 @@ public plugin_init()
 {
 	register_plugin("[ZE] Messages", ZE_VERSION, AUTHORS)
 	
-	// Hook Chains
-	RegisterHookChain(RG_CBasePlayer_Spawn, "Fw_PlayerSpawn_Post", 1)
-	
 	// Cvars
 	g_pCvarInfectNotice = register_cvar("ze_enable_infect_notice", "1")
 	g_pCvarInfectColors[Red] = register_cvar("ze_infect_notice_red", "255")
@@ -64,9 +60,6 @@ public plugin_init()
 	
 	// Others
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
-	
-	// Tasks
-	set_task(0.3, "Show_Message", _, _, _, "b") // 0.3 Is Enough Delay
 }
 
 public plugin_natives()
@@ -77,12 +70,12 @@ public plugin_natives()
 
 public ze_user_infected(iVictim, iInfector)
 {
-	if (get_pcvar_num(g_pCvarInfectNotice) != 0)
-	{
-		if (iInfector == 0) // Server ID
-			return
+	if (iInfector == 0) // Server ID
+		return
 		
-		static szVictimName[32], szAttackerName[32]
+	if (get_pcvar_num(g_pCvarInfectNotice))
+	{
+		new szVictimName[32], szAttackerName[32]
 		get_user_name(iVictim, szVictimName, charsmax(szVictimName))
 		get_user_name(iInfector, szAttackerName, charsmax(szAttackerName))
 		set_hudmessage(get_pcvar_num(g_pCvarInfectColors[Red]), get_pcvar_num(g_pCvarInfectColors[Green]), get_pcvar_num(g_pCvarInfectColors[Blue]), 0.05, 0.45, 1, 0.0, 6.0, 0.0, 0.0)
@@ -90,9 +83,21 @@ public ze_user_infected(iVictim, iInfector)
 	}
 }
 
+public ze_game_started()
+{
+	remove_task(TASK_MESSAGE)
+}
+
+public ze_zombie_appear()
+{
+	// Show message when zombies appear to reduce lag
+	set_task(0.3, "Show_Message", TASK_MESSAGE, _, _, "b") // 0.3 Is Enough Delay
+	arrayset(g_iEscapePoints, 0, charsmax(g_iEscapePoints))
+}
+
 public Show_Message()
 {
-	for(new id = 1; id <= g_iMaxClients; id++)
+	for (new id = 1; id <= g_iMaxClients; id++)
 	{
 		if (!is_user_alive(id))
 			continue
@@ -100,7 +105,7 @@ public Show_Message()
 		// Add Point for Who is Running Fast
 		if(!ze_is_user_zombie(id))
 		{
-			static Float:fVelocity[3], iSpeed
+			new Float:fVelocity[3], iSpeed
 			
 			get_entvar(id, var_velocity, fVelocity)
 			iSpeed = floatround(vector_length(fVelocity))
@@ -149,82 +154,78 @@ public Show_Message()
 	}
 }
 
-public Fw_PlayerSpawn_Post(id)
-{
-	g_iEscapePoints[id] = 0
-}
-
 public Show_Speed_Message(id)
 {
-	if (get_pcvar_num(g_pCvarMode) == 0 || get_member_game(m_bFreezePeriod) == true) // Disabled
-		return
-	
-	if (get_pcvar_num(g_pCvarMode) == 1) // Leader Mode
+	// Case 0 has nothing to do in case g_pCvarMode = 0
+	switch (get_pcvar_num(g_pCvarMode))
 	{
-		Speed_Stats()
-		new iLeaderID; iLeaderID = g_iEscapeRank[RANK_FIRST]
-		
-		if (is_user_alive(iLeaderID) && !ze_is_user_zombie(iLeaderID) && g_iEscapePoints[iLeaderID] != 0)
+		case 1: // Leader Mode
 		{
+			Speed_Stats()
+			new iLeaderID = g_iEscapeRank[RANK_FIRST]
 			new szLeader[32]
-			get_user_name(iLeaderID, szLeader, charsmax(szLeader))
+			
+			if (is_user_alive(iLeaderID) && !ze_is_user_zombie(iLeaderID) && g_iEscapePoints[iLeaderID] != 0)
+			{
+				get_user_name(iLeaderID, szLeader, charsmax(szLeader))
+				
+				set_hudmessage(get_pcvar_num(g_pCvarRankColors[Red]), get_pcvar_num(g_pCvarRankColors[Green]), get_pcvar_num(g_pCvarRankColors[Blue]), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
+				ShowSyncHudMsg(id, g_iSpeedRank, "%L", LANG_PLAYER, "RANK_INFO_LEADER", szLeader)
+			}
+			else
+			{
+				formatex(szLeader, charsmax(szLeader), "%L", LANG_PLAYER, "RANK_INFO_NONE")
+				set_hudmessage(get_pcvar_num(g_pCvarRankColors[Red]), get_pcvar_num(g_pCvarRankColors[Green]), get_pcvar_num(g_pCvarRankColors[Blue]), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
+				ShowSyncHudMsg(id, g_iSpeedRank, "%L", LANG_PLAYER, "RANK_INFO_LEADER", szLeader)
+			}
+		}
+		case 2: // Rank Mode
+		{
+			Speed_Stats()
+			
+			new szFirst[32], szSecond[32], szThird[32]
+			new iFirstID, iSecondID, iThirdID
+			
+			iFirstID = g_iEscapeRank[RANK_FIRST]
+			iSecondID = g_iEscapeRank[RANK_SECOND]
+			iThirdID = g_iEscapeRank[RANK_THIRD]
+			
+			if (is_user_alive(iFirstID) && !ze_is_user_zombie(iFirstID) && g_iEscapePoints[iFirstID] != 0)
+			{
+				get_user_name(iFirstID, szFirst, charsmax(szFirst))
+			}
+			else
+			{
+				formatex(szFirst, charsmax(szFirst), "%L", LANG_PLAYER, "RANK_INFO_NONE")
+			}
+			
+			if (is_user_alive(iSecondID) && !ze_is_user_zombie(iSecondID) && g_iEscapePoints[iSecondID] != 0)
+			{
+				get_user_name(iSecondID, szSecond, charsmax(szSecond))
+			}
+			else
+			{
+				formatex(szSecond, charsmax(szSecond), "%L", LANG_PLAYER, "RANK_INFO_NONE")
+			}
+			
+			if (is_user_alive(iThirdID) && !ze_is_user_zombie(iThirdID) && g_iEscapePoints[iThirdID] != 0)
+			{
+				get_user_name(iThirdID, szThird, charsmax(szThird))		
+			}
+			else
+			{
+				formatex(szThird, charsmax(szThird), "%L", LANG_PLAYER, "RANK_INFO_NONE")
+			}
 			
 			set_hudmessage(get_pcvar_num(g_pCvarRankColors[Red]), get_pcvar_num(g_pCvarRankColors[Green]), get_pcvar_num(g_pCvarRankColors[Blue]), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
-			ShowSyncHudMsg(id, g_iSpeedRank, "%L", LANG_PLAYER, "RANK_INFO_LEADER", szLeader)
+			ShowSyncHudMsg(id, g_iSpeedRank, "%L", LANG_PLAYER, "RANK_INFO", szFirst, szSecond, szThird)
 		}
-		else
-		{
-			set_hudmessage(get_pcvar_num(g_pCvarRankColors[Red]), get_pcvar_num(g_pCvarRankColors[Green]), get_pcvar_num(g_pCvarRankColors[Blue]), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
-			ShowSyncHudMsg(id, g_iSpeedRank, "%L", LANG_PLAYER, "RANK_INFO_LEADER", szNone)
-		}
-	}
-	
-	if (get_pcvar_num(g_pCvarMode) == 2) // Rank Mode
-	{
-		Speed_Stats()
-		
-		new szFirst[32], szSecond[32], szThird[32]
-		new iFirstID, iSecondID, iThirdID
-		
-		iFirstID = g_iEscapeRank[RANK_FIRST]
-		iSecondID = g_iEscapeRank[RANK_SECOND]
-		iThirdID = g_iEscapeRank[RANK_THIRD]
-		
-		if (is_user_alive(iFirstID) && !ze_is_user_zombie(iFirstID) && g_iEscapePoints[iFirstID] != 0)
-		{
-			get_user_name(iFirstID, szFirst, charsmax(szFirst))
-		}
-		else
-		{
-			szFirst = szNone
-		}
-		
-		if (is_user_alive(iSecondID) && !ze_is_user_zombie(iSecondID) && g_iEscapePoints[iSecondID] != 0)
-		{
-			get_user_name(iSecondID, szSecond, charsmax(szSecond))
-		}
-		else
-		{
-			szSecond = szNone
-		}
-		
-		if (is_user_alive(iThirdID) && !ze_is_user_zombie(iThirdID) && g_iEscapePoints[iThirdID] != 0)
-		{
-			get_user_name(iThirdID, szThird, charsmax(szThird))		
-		}
-		else
-		{
-			szThird = szNone
-		}
-		
-		set_hudmessage(get_pcvar_num(g_pCvarRankColors[Red]), get_pcvar_num(g_pCvarRankColors[Green]), get_pcvar_num(g_pCvarRankColors[Blue]), 0.015,  0.18, 0, 0.2, 0.4, 0.09, 0.09)
-		ShowSyncHudMsg(id, g_iSpeedRank, "%L", LANG_PLAYER, "RANK_INFO", szFirst, szSecond, szThird)
 	}
 }
 
 public Speed_Stats()
 {
-	static iHighest, iCurrentID
+	new iHighest, iCurrentID
 	
 	// Rank First
 	iHighest = 0; iCurrentID = 0
