@@ -427,6 +427,17 @@ native ze_set_user_gravity(id, iGravity)
 native ze_reset_user_gravity(id)
 
 /*
+* Description:	Remove zombie freeze time message.
+*
+* @param id		Client index.
+*
+* @return		true	| If removed successfully
+*				false	| If message still not appeared (message not there)
+*
+*/
+native ze_remove_zombie_freeze_msg(id)
+
+/*
 * Description:	Get player escape coins.
 *
 * @param id		Client index.

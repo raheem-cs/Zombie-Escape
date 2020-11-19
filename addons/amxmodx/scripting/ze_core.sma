@@ -108,6 +108,8 @@ public plugin_natives()
 	
 	register_native("ze_set_user_gravity", "native_ze_set_user_gravity", 1)
 	register_native("ze_reset_user_gravity", "native_ze_reset_user_gravity", 1)
+	
+	register_native("ze_remove_zombie_freeze_msg", "native_ze_remove_zombie_freeze_msg", 1)
 }
 
 public plugin_init()
@@ -1077,4 +1079,15 @@ public native_ze_reset_user_gravity(id)
 	set_entvar(id, var_gravity, float(g_bIsZombie[id] ? get_pcvar_num(g_pCvarZombieGravity):get_pcvar_num(g_pCvarHumanGravity)) / 800.0)
 
 	return true
+}
+
+public native_ze_remove_zombie_freeze_msg()
+{
+	if (task_exists(TASK_COUNTDOWN2))
+	{
+		remove_task(TASK_COUNTDOWN2)
+		return true
+	}
+	
+	return false
 }
