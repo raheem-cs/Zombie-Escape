@@ -432,21 +432,22 @@ public Choose_Zombies()
 		if (!is_user_alive(id) || g_bIsZombie[id])
 			continue
 		
-		if (get_pcvar_num(g_pCvarSmartRandom))
-		{
-			// If player in the array, it means he chosen previous round so skip him this round
-			if (IsPlayerInArray(g_aChosenPlayers, id))
-				continue
-		}
+		// Check if CVAR enabled and if player in the array, it means he chosen previous round so skip him this round
+		if (get_pcvar_num(g_pCvarSmartRandom) && IsPlayerInArray(g_aChosenPlayers, id))
+			continue
 
 		Set_User_Zombie(id)
 		set_entvar(id, var_health, get_pcvar_float(g_pCvarFirstZombiesHealth))
 		g_bIsZombieFrozen[id] = true
-		g_bZombieFreezeTime = true
 		set_entvar(id, var_maxspeed, 1.0)
+		iZombies++
+	}
+	
+	if (iZombies > 0)
+	{
+		g_bZombieFreezeTime = true
 		set_task(0.1, "Zombies_Speed", ZOMBIES_SPEED, _, _, "b") // Better than PreThink
 		ExecuteForward(g_iForwards[FORWARD_ZOMBIE_APPEAR], g_iFwReturn)
-		iZombies++
 	}
 	
 	if (get_pcvar_num(g_pCvarSmartRandom))
@@ -494,12 +495,13 @@ public ReleaseZombie()
 {
 	ExecuteForward(g_iForwards[FORWARD_ZOMBIE_RELEASE], g_iFwReturn)
 	
+	g_bZombieFreezeTime = false
+	
 	for(new id = 1; id <= g_iMaxClients; id++)
 	{
 		if (is_user_alive(id) && g_bIsZombie[id])
 		{
 			g_bIsZombieFrozen[id] = false
-			g_bZombieFreezeTime = false
 		}
 	}
 }
