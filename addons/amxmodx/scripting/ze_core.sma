@@ -175,6 +175,9 @@ public plugin_init()
 	g_pCvarRoundEndDelay = register_cvar("ze_round_end_delay", "5")
 	g_pCvarSmartRandom = register_cvar("ze_smart_random", "1")
 	
+	// Default Values
+	g_bGameStarted = false
+	
 	// Static Values
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
 	
@@ -410,9 +413,7 @@ public Countdown_Start(TaskID)
 	}
 	
 	set_hudmessage(random(256), random(256), random(256), -1.0, 0.21, 0, 0.8, 0.8)
-	show_hudmessage(0, "%L", LANG_PLAYER, "RUN_NOTICE", g_iCountDown)
-
-	g_iCountDown--
+	show_hudmessage(0, "%L", LANG_PLAYER, "RUN_NOTICE", g_iCountDown--)
 }
 
 public Choose_Zombies()
@@ -486,9 +487,7 @@ public ReleaseZombie_CountDown(TaskID)
 	
 	// Release Hud Message
 	set_hudmessage(255, 255, 0, -1.0, 0.21, 1, 2.0, 2.0)
-	ShowSyncHudMsg(0, g_iReleaseNotice, "%L", LANG_PLAYER, "ZOMBIE_RELEASE", g_iCountDown)
-	
-	g_iCountDown --
+	ShowSyncHudMsg(0, g_iReleaseNotice, "%L", LANG_PLAYER, "ZOMBIE_RELEASE", g_iCountDown--)
 }
 
 public ReleaseZombie()
@@ -546,24 +545,12 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 	if (g_bIsZombieFrozen[iVictim] || g_bIsZombieFrozen[iAttacker])
 		return HC_SUPERCEDE
 	
-	// Execute pre-infection forward
-	ExecuteForward(g_iForwards[FORWARD_PRE_INFECTED], g_iFwReturn, iVictim, iAttacker, floatround(flDamage))
-	
-	if (g_iFwReturn >= ZE_STOP)
-	{
-		return HC_SUPERCEDE
-	}
-	
-	g_iAliveHumansNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
-	
 	if (g_bIsZombie[iAttacker])
 	{
-		// Death Message with Infection style [Added here because of delay in Forward use]
-		SendDeathMsg(iAttacker, iVictim)
+		if (!Set_User_Zombie(iVictim, iAttacker, flDamage))
+			return HC_SUPERCEDE
 		
-		Set_User_Zombie(iVictim)
-		
-		ExecuteForward(g_iForwards[FORWARD_INFECTED], g_iFwReturn, iVictim, iAttacker)
+		g_iAliveHumansNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
 		
 		if (g_iAliveHumansNum == 1) // Check if this is Last Human, Because of Delay i can't check if it's 0 instead of 1
 		{
@@ -611,6 +598,7 @@ public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:flDamage, bitsDa
 public Round_End()
 {
 	g_iAliveZombiesNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
+	g_iAliveHumansNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
 	
 	if ((g_iAliveZombiesNum == 0 && g_bGameStarted) || (g_bDisconnectHumanWin))
 	{
@@ -682,10 +670,7 @@ public client_disconnected(id)
 	ExecuteForward(g_iForwards[FORWARD_DISCONNECT], g_iFwReturn, id)
 	
 	if (g_iFwReturn >= ZE_STOP)
-	{
-		// Here return, function ended here, below won't be executed
 		return
-	}
 	
 	// Delay Then Check Players to Terminate The round (Delay needed)
 	set_task(0.1, "Check_AlivePlayers")
@@ -824,7 +809,7 @@ public Check_AllPlayersNumber(TaskID)
 	}
 }
 
-public Set_User_Human(id)
+Set_User_Human(id)
 {
 	if (!is_user_alive(id))
 		return
@@ -841,10 +826,24 @@ public Set_User_Human(id)
 		rg_set_user_team(id, TEAM_CT, MODEL_UNASSIGNED)
 }
 
-public Set_User_Zombie(id)
+Set_User_Zombie(id, iAttacker = 0, Float:flDamage = 0.0)
 {
 	if (!is_user_alive(id))
-		return
+		return false
+		
+	// Execute pre-infection forward
+	ExecuteForward(g_iForwards[FORWARD_PRE_INFECTED], g_iFwReturn, id, iAttacker, floatround(flDamage))
+	
+	if (g_iFwReturn >= ZE_STOP)
+	{
+		return false
+	}
+	
+	if (iAttacker > 0)
+	{
+		// Death Message with Infection style, only if infection caused by player not server
+		SendDeathMsg(iAttacker, id)
+	}
 	
 	g_bIsZombie[id] = true
 	set_entvar(id, var_health, get_pcvar_float(g_pCvarZombieHealth))
@@ -855,6 +854,8 @@ public Set_User_Zombie(id)
 	
 	if (get_member(id, m_iTeam) != TEAM_TERRORIST)
 		rg_set_user_team(id, TEAM_TERRORIST, MODEL_UNASSIGNED)
+	
+	return true
 }
 
 public Map_Restart()
