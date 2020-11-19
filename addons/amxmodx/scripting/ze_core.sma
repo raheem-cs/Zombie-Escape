@@ -177,9 +177,6 @@ public plugin_init()
 	g_pCvarRoundEndDelay = register_cvar("ze_round_end_delay", "5")
 	g_pCvarSmartRandom = register_cvar("ze_smart_random", "1")
 	
-	// Default Values
-	g_bGameStarted = false
-	
 	// Static Values
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
 	
@@ -549,10 +546,10 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 	
 	if (g_bIsZombie[iAttacker])
 	{
+		g_iAliveHumansNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
+		
 		if (!Set_User_Zombie(iVictim, iAttacker, flDamage))
 			return HC_SUPERCEDE
-		
-		g_iAliveHumansNum = GetAlivePlayersNum(CsTeams:TEAM_CT)
 		
 		if (g_iAliveHumansNum == 1) // Check if this is Last Human, Because of Delay i can't check if it's 0 instead of 1
 		{

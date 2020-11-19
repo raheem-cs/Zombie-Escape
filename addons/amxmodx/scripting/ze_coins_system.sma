@@ -162,6 +162,8 @@ public ze_roundend(WinTeam)
 	{
 		for(new id = 1; id <= g_iMaxClients; id++)
 		{
+			g_flDamage[id] = 0.0
+			
 			if (!is_user_alive(id) || ze_is_user_zombie(id))
 				continue
 			
@@ -169,7 +171,7 @@ public ze_roundend(WinTeam)
 			
 			SaveCoins(id)
 			
-			if (get_pcvar_num(g_pCvarEarnChatNotice) != 0)
+			if (get_pcvar_num(g_pCvarEarnChatNotice))
 			{
 				ze_colored_print(id, "%L", LANG_PLAYER, "ESCAPE_SUCCESS_COINS", get_pcvar_num(g_pCvarEscapeSuccess))
 			}
@@ -186,7 +188,7 @@ public ze_user_infected(iVictim, iInfector)
 	
 	SaveCoins(iInfector)
 	
-	if (get_pcvar_num(g_pCvarEarnChatNotice) != 0)
+	if (get_pcvar_num(g_pCvarEarnChatNotice))
 	{
 		ze_colored_print(iInfector, "%L", LANG_PLAYER, "HUMAN_INFECTED_COINS", get_pcvar_num(g_pCvarHumanInfected))
 	}
@@ -214,29 +216,14 @@ public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:fDamage, bitsDam
 	g_flDamage[iAttacker] += fDamage
 	
 	// Damage Calculator Equal or Higher than needed damage
-	if (g_flDamage[iAttacker] >= get_pcvar_float(g_pCvarDamage))
+	while (g_flDamage[iAttacker] >= get_pcvar_float(g_pCvarDamage))
 	{
-		// Player did damage that a multiplication of the cvar? Increase coins by this factor
-		new iMultiplier = floatround(g_flDamage[iAttacker] / get_pcvar_float(g_pCvarDamage))
-		
-		// If this multiplier is more than or equal 2, then multiply it with original coins reward
-		if (iMultiplier >= 2)
-		{
-			// Give player coins * multiplier
-			g_iEscapeCoins[iAttacker] += (get_pcvar_num(g_pCvarDamageCoins) * iMultiplier)
-		}
-		else
-		{
-			// Give player The coins, without multiplier
-			g_iEscapeCoins[iAttacker] += get_pcvar_num(g_pCvarDamageCoins)
-		}
-		
-		SaveCoins(iAttacker)
-		
-		// Rest The Damage Calculator
-		g_flDamage[iAttacker] = 0.0
+		g_iEscapeCoins[iAttacker] += (get_pcvar_num(g_pCvarDamageCoins))
+		g_flDamage[iAttacker] -= get_pcvar_float(g_pCvarDamage)
 	}
-	
+		
+	SaveCoins(iAttacker)
+
 	return HC_CONTINUE
 }
 

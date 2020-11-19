@@ -43,7 +43,7 @@ public ze_roundend(WinTeam)
 		for (new id = 1; id <= g_iMaxClients; id++)
 		{
 			// Skip All Dead Players or Zombies
-			if (!is_user_alive(id) || get_member(id, m_iTeam) == TEAM_TERRORIST)
+			if (!is_user_alive(id) || ze_is_user_zombie(id))
 				continue
 			
 			// + Frags for All humans Who are Alive
@@ -57,7 +57,7 @@ public Fix_DeadAttrib()
 	for (new id = 1; id <= g_iMaxClients; id++)
 	{
 		// Skip All Dead And Humans
-		if (!is_user_alive(id) || get_member(id, m_iTeam) == TEAM_CT)
+		if (!is_user_alive(id) || !ze_is_user_zombie(id))
 			continue
 		
 		// Fix the Dead Attribute
