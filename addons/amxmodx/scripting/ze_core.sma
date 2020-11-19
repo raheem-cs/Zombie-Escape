@@ -59,6 +59,7 @@ new g_iAliveHumansNum,
 	bool:g_bIsKnockBackUsed[33],
 	bool:g_bIsGravityUsed[33],
 	bool:g_bEnteredNotChoosed[33],
+	bool:g_bDisconnectHumanWin,
 	Float:g_flReferenceTime,
 	Float:g_flUserKnockback[33]
 
@@ -621,13 +622,14 @@ public Round_End()
 {
 	g_iAliveZombiesNum = GetAlivePlayersNum(CsTeams:TEAM_TERRORIST)
 	
-	if (g_iAliveZombiesNum == 0 && g_bGameStarted) 
+	if ((g_iAliveZombiesNum == 0 && g_bGameStarted) || (g_bDisconnectHumanWin))
 	{
 		g_iTeam = ZE_TEAM_HUMAN
 		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, g_iTeam)
 		client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
 		g_iHumansScore++
 		g_bIsRoundEnding = true
+		g_bDisconnectHumanWin = false
 		return // To block Execute the code blew
 	}
 	
@@ -733,6 +735,7 @@ public Check_AlivePlayers()
 			{
 				// Game started is false and humans wins (Escape Success)
 				g_bGameStarted = false
+				g_bDisconnectHumanWin = true
 				rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_CTS, ROUND_CTS_WIN, "")
 				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
 			}
