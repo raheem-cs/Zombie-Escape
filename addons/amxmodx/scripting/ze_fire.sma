@@ -389,7 +389,7 @@ set_on_fire(victim)
 {
 	ExecuteForward(g_iFwUserBurn, g_iForwardReturn, victim)
 	
-	if (g_iForwardReturn >= PLUGIN_HANDLED)
+	if (g_iForwardReturn >= ZE_STOP)
 		return false;
 	
 	if (get_pcvar_num(g_pCvarFireHudIcon))

@@ -70,7 +70,7 @@ public Lighting_Style()
 			new iCamMode = get_entvar(id, var_iuser1)
 			new iSpecId = get_entvar(id, var_iuser2)
 			
-			if (iCamMode == OBS_ROAMING)
+			if (iCamMode == OBS_ROAMING) // Free Look
 			{
 				Set_NightVision(id, 0, 0, 0x0000, 0, 0, 0, 0)
 				Set_MapLightStyle(id, g_szLightStyle)

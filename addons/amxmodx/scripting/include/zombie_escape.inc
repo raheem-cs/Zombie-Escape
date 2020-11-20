@@ -137,7 +137,7 @@ forward ze_game_started_pre();
 forward ze_game_started();
 
 /*
-* Description:	Called before zombie get fired by fire nade.
+* Description:	Called before zombie (or human) get fired by fire nade.
 *
 * @return		Return ZE_STOP to stop the fire action, zombie will not get fired.
 *				Return ZE_CONTINUE to continue the fire, zombie will be fired.
@@ -148,7 +148,7 @@ forward ze_game_started();
 forward ze_fire_pre(id);
 
 /*
-* Description:	Called before zombie get frozen by frost nade.
+* Description:	Called before zombie (or human) get frozen by frost nade.
 *
 * @return		Return ZE_STOP to stop the freeze action, zombie will not get frozen.
 *				Return ZE_CONTINUE to continue the freeze, zombie will be frozen.
@@ -510,6 +510,7 @@ native ze_stop_mod_rendering(id, bool:bSet);
 *				Same you can fire him at anytime.
 *				Always check if user alive or not when using this native.
 *				This will throw error in case of invalid player.
+*				You can also set fire on alive humans.
 *
 */
 native ze_set_fire_grenade(id, bSet);
@@ -543,6 +544,7 @@ native ze_zombie_in_fire(id);
 *				Same you can freeze him at anytime.
 *				Always check if user alive or not when using this native.
 *				This will throw error in case of invalid player.
+*				You can also freeze alive humans.
 *
 */
 native ze_set_frost_grenade(id, bSet);

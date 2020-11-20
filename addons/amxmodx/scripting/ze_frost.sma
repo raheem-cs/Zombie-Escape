@@ -471,7 +471,7 @@ set_freeze(victim)
 	// Allow other plugins to decide whether player should be frozen or not
 	ExecuteForward(g_iForwards[FW_USER_FREEZE_PRE], g_iForwardReturn, victim)
 	
-	if (g_iForwardReturn >= PLUGIN_HANDLED)
+	if (g_iForwardReturn >= ZE_STOP)
 	{
 		// Get player's origin
 		static origin2[3]
