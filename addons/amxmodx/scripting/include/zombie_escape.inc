@@ -378,7 +378,7 @@ native ze_reset_zombie_speed(id);
 *				This function return integer value.
 *
 */
-native ze_get_user_knockback(id)
+native ze_get_user_knockback(id);
 
 /*
 * Description:			Set user knockback.
@@ -390,7 +390,7 @@ native ze_get_user_knockback(id)
 *						false	| If this player not connected
 *
 */
-native ze_set_user_knockback(id, Float:flKnockback)
+native ze_set_user_knockback(id, Float:flKnockback);
 
 /*
 * Description:	Reset user knockback to use value from CVAR.
@@ -401,7 +401,7 @@ native ze_set_user_knockback(id, Float:flKnockback)
 *				false	| If this player not connected
 *
 */
-native ze_reset_user_knockback(id)
+native ze_reset_user_knockback(id);
 
 /*
 * Description:			Set user gravity.
@@ -413,7 +413,7 @@ native ze_reset_user_knockback(id)
 *						false	| If this player not connected
 *
 */
-native ze_set_user_gravity(id, iGravity)
+native ze_set_user_gravity(id, iGravity);
 
 /*
 * Description:	Reset user gravity to use value from CVAR.
@@ -424,18 +424,16 @@ native ze_set_user_gravity(id, iGravity)
 *				false	| If this player not connected
 *
 */
-native ze_reset_user_gravity(id)
+native ze_reset_user_gravity(id);
 
 /*
 * Description:	Remove zombie freeze time message.
-*
-* @param id		Client index.
 *
 * @return		true	| If removed successfully
 *				false	| If message still not appeared (message not there)
 *
 */
-native ze_remove_zombie_freeze_msg(id)
+native ze_remove_zombie_freeze_msg();
 
 /*
 * Description:	Get player escape coins.
