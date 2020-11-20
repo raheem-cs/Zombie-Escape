@@ -51,7 +51,7 @@ public plugin_init()
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
 	
 	// Set Lighting Task
-	set_task(0.1, "Lighting_Style", _, _, _, "b")
+	set_task(1.0, "Lighting_Style", _, _, _, "b")
 }
 
 public Lighting_Style()
