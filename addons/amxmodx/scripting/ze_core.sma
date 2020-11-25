@@ -849,7 +849,7 @@ Set_User_Zombie(id, iAttacker = 0, Float:flDamage = 0.0)
 	set_entvar(id, var_gravity, float(g_bIsGravityUsed[id] ? g_iUserGravity[id] : get_pcvar_num(g_pCvarZombieGravity))/800.0)
 	rg_remove_all_items(id)
 	rg_give_item(id, "weapon_knife", GT_APPEND)
-	ExecuteForward(g_iForwards[FORWARD_INFECTED], g_iFwReturn, id, 0)
+	ExecuteForward(g_iForwards[FORWARD_INFECTED], g_iFwReturn, id, iAttacker)
 	
 	if (get_member(id, m_iTeam) != TEAM_TERRORIST)
 		rg_set_user_team(id, TEAM_TERRORIST, MODEL_UNASSIGNED)

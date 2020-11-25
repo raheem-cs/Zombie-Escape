@@ -20,7 +20,7 @@
 // Team constants, use them in ze_roundend() forward 
 enum
 {
-	ZE_TEAM_ZOMBIE = 0,
+	ZE_TEAM_ZOMBIE = 1,
 	ZE_TEAM_HUMAN
 }
 
