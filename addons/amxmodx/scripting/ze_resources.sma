@@ -506,12 +506,12 @@ public ze_user_infected(iVictim, iInfector)
 		case 0..30, 71..100:
 		{
 			ArrayGetString(g_szHostZombieModel, random_num(0, ArraySize(g_szHostZombieModel) - 1), szPlayerModel, charsmax(szPlayerModel))
-			rg_set_user_model(iVictim, szPlayerModel) // This native Faster 100000000000 times than one in fun module
+			rg_set_user_model(iVictim, szPlayerModel, true) // This native Faster 100000000000 times than one in fun module
 		}
 		case 31..70, 101..130:
 		{
 			ArrayGetString(g_szOriginZombieModel, random_num(0, ArraySize(g_szOriginZombieModel) - 1), szPlayerModel, charsmax(szPlayerModel))
-			rg_set_user_model(iVictim, szPlayerModel)
+			rg_set_user_model(iVictim, szPlayerModel, true)
 		}
 	}
 	
@@ -597,7 +597,7 @@ public ze_user_humanized(id)
 		return
 	
 	// Rest Player Model (Model Randomly)
-	rg_set_user_model(id, szHumanModels[random_num(0, charsmax(szHumanModels))])
+	rg_set_user_model(id, szHumanModels[random_num(0, charsmax(szHumanModels))], true)
 		
 	// Rest Player Knife model
 	new szModel[MODEL_MAX_LENGTH]
