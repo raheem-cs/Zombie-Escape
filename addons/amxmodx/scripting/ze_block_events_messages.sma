@@ -123,7 +123,7 @@ public Fw_Spawn(iEnt)
 	return FMRES_IGNORED
 }
 
-public Fw_TouchWeaponBox_Pre(iWeapon, iIndex)
+public Fw_TouchWeaponBox_Pre(iWeaponBox, iIndex)
 {
 	if (!is_user_alive(iIndex))
 		return HAM_IGNORED
