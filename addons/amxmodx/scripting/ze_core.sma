@@ -176,7 +176,7 @@ public plugin_init()
 	g_pCvarColors[Blue] = register_cvar("ze_score_message_blue", "0")
 	g_pCvarRoundEndDelay = register_cvar("ze_round_end_delay", "5")
 	g_pCvarSmartRandom = register_cvar("ze_smart_random", "1")
-	
+
 	// Static Values
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
 	
@@ -200,9 +200,9 @@ public plugin_cfg()
 	register_cvar("ze_version", ZE_VERSION, FCVAR_SERVER|FCVAR_SPONLY)
 	set_cvar_string("ze_version", ZE_VERSION)
 	
-	// Delay so cvars be loaded from zombie_escape.cfg
-	set_task(0.1, "DelaySmartRandom")
-	
+	// Create our Trie to store SteamIDs in.
+	g_tChosenPlayers = TrieCreate()
+
 	// Delay some settings
 	set_task(0.1, "DelaySettings")
 }
@@ -223,16 +223,6 @@ public DelaySettings()
 	if (get_pcvar_num(pCvarMaxSpeed) < get_pcvar_num(g_pCvarZombieSpeed))
 	{
 		set_pcvar_num(pCvarMaxSpeed, get_pcvar_num(g_pCvarZombieSpeed))
-	}
-}
-
-public DelaySmartRandom() 
-{
-	// Check smart random is enabled or not?
-	if (get_pcvar_num(g_pCvarSmartRandom))
-	{
-		// Create our Trie to store SteamIDs in
-		g_tChosenPlayers = TrieCreate()		
 	}
 }
 
@@ -877,11 +867,8 @@ public Reset_Score_Message()
 
 public plugin_end()
 {
-	// Check smart random is enabled to destroy Trie.
-	if (get_pcvar_num(g_pCvarSmartRandom))
-	{
-		TrieDestroy(g_tChosenPlayers)
-	}
+	// Destroy Trie.
+	TrieDestroy(g_tChosenPlayers)
 }
 
 public Message_Teamscore()
