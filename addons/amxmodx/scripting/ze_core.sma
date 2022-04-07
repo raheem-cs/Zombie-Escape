@@ -81,8 +81,8 @@ new	g_pCvarHumanSpeedFactor,
 	g_pCvarRoundEndDelay,
 	g_pCvarSmartRandom
 	
-// Dynamic Arrays
-new Array:g_aChosenPlayers
+// Trie's.
+new Trie:g_tChosenPlayers
 
 public plugin_natives()
 {
@@ -226,12 +226,13 @@ public DelaySettings()
 	}
 }
 
-public DelaySmartRandom()
+public DelaySmartRandom() 
 {
+	// Check smart random is enabled or not?
 	if (get_pcvar_num(g_pCvarSmartRandom))
 	{
-		// Create our array to store SteamIDs in
-		g_aChosenPlayers = ArrayCreate(34)
+		// Create our Trie to store SteamIDs in
+		g_tChosenPlayers = TrieCreate()		
 	}
 }
 
@@ -418,7 +419,7 @@ public Countdown_Start(TaskID)
 public Choose_Zombies()
 {
 	new iZombies, id, iAliveCount
-	new iReqZombies
+	new szAuthId[34], iReqZombies
 	
 	// Get total alive players and required players
 	iAliveCount  = GetAllAlivePlayersNum()
@@ -432,9 +433,15 @@ public Choose_Zombies()
 		if (!is_user_alive(id) || g_bIsZombie[id])
 			continue
 		
-		// Check if CVAR enabled and if player in the array, it means he chosen previous round so skip him this round
-		if (get_pcvar_num(g_pCvarSmartRandom) && IsPlayerInArray(g_aChosenPlayers, id))
-			continue
+		// Get authid (SteamID) of the player.
+		get_user_authid(id, szAuthId, charsmax(szAuthId))
+
+		// Check if CVAR enabled and if player in the Trie, it means he chosen previous round so skip him this round
+		if (get_pcvar_num(g_pCvarSmartRandom))
+		{
+			if (TrieKeyExists(g_tChosenPlayers, szAuthId))
+				continue
+		}
 
 		Set_User_Zombie(id)
 		set_entvar(id, var_health, get_pcvar_float(g_pCvarFirstZombiesHealth))
@@ -452,10 +459,8 @@ public Choose_Zombies()
 	
 	if (get_pcvar_num(g_pCvarSmartRandom))
 	{
-		// Clear the array first
-		ArrayClear(g_aChosenPlayers)
-		
-		new szAuthId[34]
+		// Clear the Trie first
+		TrieClear(g_tChosenPlayers)
 		
 		// Add steamid of chosen zombies, so we don't choose them next round again (using steamid means it support reconnect)
 		for (new id = 1; id <= g_iMaxClients; id++)
@@ -465,7 +470,7 @@ public Choose_Zombies()
 			
 			get_user_authid(id, szAuthId, charsmax(szAuthId))
 			
-			ArrayPushString(g_aChosenPlayers, szAuthId)
+			TrieSetCell(g_tChosenPlayers, szAuthId, 0)
 		}
 	}
 	
@@ -872,9 +877,10 @@ public Reset_Score_Message()
 
 public plugin_end()
 {
+	// Check smart random is enabled to destroy Trie.
 	if (get_pcvar_num(g_pCvarSmartRandom))
 	{
-		ArrayDestroy(g_aChosenPlayers)
+		TrieDestroy(g_tChosenPlayers)
 	}
 }
 

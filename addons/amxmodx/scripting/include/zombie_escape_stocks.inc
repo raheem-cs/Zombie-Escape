@@ -442,23 +442,3 @@ stock SQL_IsFail(iFailState, iError, szError[], const szLogFile[])
 	
 	return false
 }
-
-// Check if player steamid in given array or not
-stock IsPlayerInArray(Array:aSteamArray, id)
-{
-	new szAuthId[34], szSavedAuthId[34];
-	
-	get_user_authid(id, szAuthId, charsmax(szAuthId))
-	
-	for(new i = 0; i < ArraySize(aSteamArray); i++)
-	{
-		ArrayGetString(aSteamArray, i, szSavedAuthId, charsmax(szSavedAuthId))
-		
-		if (equal(szSavedAuthId, szAuthId))
-		{
-			return true
-		}
-	}
-	
-	return false
-}
