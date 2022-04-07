@@ -414,7 +414,13 @@ public Choose_Zombies()
 	// Get total alive players and required players
 	iAliveCount  = GetAllAlivePlayersNum()
 	iReqZombies = RequiredZombies()
-	
+
+	// Check smart random is enabled or not.
+	new bool:bSmartRandom = get_pcvar_num(g_pCvarSmartRandom) ? true : false
+
+	// Get health of first Zombies.
+	new Float:flHealth = get_pcvar_float(g_pCvarFirstZombiesHealth)
+
 	// Loop till we find req players
 	while(iZombies < iReqZombies)
 	{
@@ -427,14 +433,12 @@ public Choose_Zombies()
 		get_user_authid(id, szAuthId, charsmax(szAuthId))
 
 		// Check if CVAR enabled and if player in the Trie, it means he chosen previous round so skip him this round
-		if (get_pcvar_num(g_pCvarSmartRandom))
-		{
-			if (TrieKeyExists(g_tChosenPlayers, szAuthId))
-				continue
-		}
+		if (bSmartRandom && TrieKeyExists(g_tChosenPlayers, szAuthId))
+			continue
 
+		// Infect player.
 		Set_User_Zombie(id)
-		set_entvar(id, var_health, get_pcvar_float(g_pCvarFirstZombiesHealth))
+		set_entvar(id, var_health, flHealth)
 		g_bIsZombieFrozen[id] = true
 		set_entvar(id, var_maxspeed, 1.0)
 		iZombies++
@@ -447,13 +451,13 @@ public Choose_Zombies()
 		ExecuteForward(g_iForwards[FORWARD_ZOMBIE_APPEAR], g_iFwReturn)
 	}
 	
-	if (get_pcvar_num(g_pCvarSmartRandom))
+	if (bSmartRandom)
 	{
 		// Clear the Trie first
 		TrieClear(g_tChosenPlayers)
 		
 		// Add steamid of chosen zombies, so we don't choose them next round again (using steamid means it support reconnect)
-		for (new id = 1; id <= g_iMaxClients; id++)
+		for (id = 1; id <= g_iMaxClients; id++)
 		{
 			if(!is_user_connected(id) || !g_bIsZombie[id])
 				continue
