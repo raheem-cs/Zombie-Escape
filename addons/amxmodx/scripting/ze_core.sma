@@ -680,11 +680,14 @@ public Check_AlivePlayers()
 	// Game Started? (There is at least 2 players Alive?)
 	if (g_bGameStarted)
 	{
+		// Get the required number of players.
+		new iReqPlayers = get_pcvar_num(g_pCvarReqPlayers)
+
 		// We are in freeze time?
 		if (get_member_game(m_bFreezePeriod))
 		{
 			// Humans alive number = 1 and no zombies?
-			if (g_iAliveHumansNum < get_pcvar_num(g_pCvarReqPlayers))
+			if (g_iAliveHumansNum < iReqPlayers)
 			{
 				// Game started false again
 				g_bGameStarted = false
@@ -693,13 +696,13 @@ public Check_AlivePlayers()
 		else // Not freeze time?
 		{
 			// Variables
-			new iAllZombiesNum = GetTeamPlayersNum(CsTeams:TEAM_TERRORIST),
-			iAllHumansNum = GetTeamPlayersNum(CsTeams:TEAM_CT),
+			new iAllZombiesNum = get_member_game(m_iNumTerrorist),
+			iAllHumansNum = get_member_game(m_iNumCT),
 			iDeadZombiesNum = GetDeadPlayersNum(CsTeams:TEAM_TERRORIST),
 			iDeadHumansNum = GetDeadPlayersNum(CsTeams:TEAM_CT)
 	
 			// Alive humans number = 1 and no zombies at all, And no dead humans?
-			if (g_iAliveHumansNum < get_pcvar_num(g_pCvarReqPlayers) && iDeadHumansNum == 0 && iAllZombiesNum == 0)
+			if (g_iAliveHumansNum < iReqPlayers && iDeadHumansNum == 0 && iAllZombiesNum == 0)
 			{
 				// Game started is false and humans wins (Escape Success)
 				g_bGameStarted = false
@@ -708,7 +711,7 @@ public Check_AlivePlayers()
 			}
 			
 			// Alive zombies number = 1 and no humans at all, And no dead zombies?
-			if (g_iAliveZombiesNum < get_pcvar_num(g_pCvarReqPlayers) && iDeadZombiesNum == 0 && iAllHumansNum == 0)
+			if (g_iAliveZombiesNum < iReqPlayers && iDeadZombiesNum == 0 && iAllHumansNum == 0)
 			{
 				// Game started is false and zombies wins (Escape Fail)
 				g_bGameStarted = false
@@ -716,14 +719,14 @@ public Check_AlivePlayers()
 			}
 			
 			// Humans number more than 1 and no zombies?
-			if (g_iAliveHumansNum >= get_pcvar_num(g_pCvarReqPlayers) && g_iAliveZombiesNum == 0 && !g_bIsRoundEnding)
+			if (g_iAliveHumansNum >= iReqPlayers && g_iAliveZombiesNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape success as there is no Zombies
 				Finish_Round(ZE_TEAM_HUMAN, false, true)
 			}
 			
 			// Zombies number more than 1 and no humans?
-			if (g_iAliveZombiesNum >= get_pcvar_num(g_pCvarReqPlayers) && g_iAliveHumansNum == 0 && !g_bIsRoundEnding)
+			if (g_iAliveZombiesNum >= iReqPlayers && g_iAliveHumansNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape Fail as there is no humans
 				Finish_Round(ZE_TEAM_ZOMBIE, false, true)
@@ -867,7 +870,7 @@ Finish_Round(iTeam, bool:bCallForward = true, bool:bForceEnd = true)
 			if (bForceEnd)
 			{
 				// Finish the round, and make Humans are winners.
-				rg_round_end(flRoundEndDelay, WINSTATUS_CTS, ROUND_NONE, "", "")
+				rg_round_end(flRoundEndDelay, WINSTATUS_CTS, ROUND_CTS_WIN, "", "")
 			}
 
 			// Get HUD type of win message.
@@ -898,7 +901,7 @@ Finish_Round(iTeam, bool:bCallForward = true, bool:bForceEnd = true)
 			if (bForceEnd)
 			{
 				// Finish the round, and make Zombies are winners.
-				rg_round_end(flRoundEndDelay, WINSTATUS_TERRORISTS, ROUND_NONE, "", "")
+				rg_round_end(flRoundEndDelay, WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "", "")
 			}
 
 			// Get HUD type of win message.
