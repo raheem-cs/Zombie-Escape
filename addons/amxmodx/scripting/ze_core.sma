@@ -79,7 +79,8 @@ new	g_pCvarHumanSpeedFactor,
 	g_pCvarScoreMessageType, 
 	g_pCvarColors[3],
 	g_pCvarRoundEndDelay,
-	g_pCvarSmartRandom
+	g_pCvarSmartRandom,
+	g_pCvarWinMessageType
 	
 // Trie's.
 new Trie:g_tChosenPlayers
@@ -176,6 +177,7 @@ public plugin_init()
 	g_pCvarColors[Blue] = register_cvar("ze_score_message_blue", "0")
 	g_pCvarRoundEndDelay = register_cvar("ze_round_end_delay", "5")
 	g_pCvarSmartRandom = register_cvar("ze_smart_random", "1")
+	g_pCvarWinMessageType = register_cvar("ze_winmessage_type", "0")
 
 	// Static Values
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
@@ -558,14 +560,8 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 			// Round is Ending
 			g_bIsRoundEnding = true
 			
-			// Zombie Win, Leave text blank so we use ours from ML
-			rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
-			
-			// Show Our Message
-			client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
-			
-			// Excecute round end forward
-			ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, ZE_TEAM_ZOMBIE)
+			// Zombie Win, Show message win and finish the round.
+			Finish_Round(ZE_TEAM_ZOMBIE)
 		}
 	}
 	
@@ -600,8 +596,8 @@ public Round_End()
 	
 	if ((g_iAliveZombiesNum == 0 && g_bGameStarted) || (g_bDisconnectHumanWin))
 	{
-		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, ZE_TEAM_HUMAN)
-		client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
+		// Show message win and call forward ze_roundend(iWinTeam).
+		Finish_Round(ZE_TEAM_HUMAN, true, false)
 		g_iHumansScore++
 		g_bIsRoundEnding = true
 		g_bDisconnectHumanWin = false
@@ -614,10 +610,14 @@ public Round_End()
 	// If it's already called one time, don't call it again
 	if (!g_bEndCalled)
 	{
-		ExecuteForward(g_iForwards[FORWARD_ROUNDEND], g_iFwReturn, ZE_TEAM_ZOMBIE)
+		// Show message win and call forward ze_roundend(iWinTeam)
+		Finish_Round(ZE_TEAM_ZOMBIE, true, false)
 	}
-	
-	client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
+	else 
+	{
+		// Show only message win.
+		Finish_Round(ZE_TEAM_ZOMBIE, false, false)	
+	}
 }
 
 public Event_RoundEnd_Pre(WinStatus:status, ScenarioEventEndRound:event, Float:tmDelay)
@@ -644,11 +644,8 @@ public Check_RoundTimeleft()
 		// Round is Ending
 		g_bIsRoundEnding = true
 		
-		// If Time is Out then Terminate the Round
-		rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
-		
-		// Show our Message
-		client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
+		// Show message win and finish round.
+		Finish_Round(ZE_TEAM_ZOMBIE, false, true)
 	}
 }
 
@@ -707,8 +704,7 @@ public Check_AlivePlayers()
 				// Game started is false and humans wins (Escape Success)
 				g_bGameStarted = false
 				g_bDisconnectHumanWin = true
-				rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_CTS, ROUND_CTS_WIN, "")
-				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
+				Finish_Round(ZE_TEAM_HUMAN, false, true)
 			}
 			
 			// Alive zombies number = 1 and no humans at all, And no dead zombies?
@@ -716,24 +712,21 @@ public Check_AlivePlayers()
 			{
 				// Game started is false and zombies wins (Escape Fail)
 				g_bGameStarted = false
-				rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
-				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
+				Finish_Round(ZE_TEAM_ZOMBIE, false, true)
 			}
 			
 			// Humans number more than 1 and no zombies?
 			if (g_iAliveHumansNum >= get_pcvar_num(g_pCvarReqPlayers) && g_iAliveZombiesNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape success as there is no Zombies
-				rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_CTS, ROUND_CTS_WIN, "")
-				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
+				Finish_Round(ZE_TEAM_HUMAN, false, true)
 			}
 			
 			// Zombies number more than 1 and no humans?
 			if (g_iAliveZombiesNum >= get_pcvar_num(g_pCvarReqPlayers) && g_iAliveHumansNum == 0 && !g_bIsRoundEnding)
 			{
 				// Then Escape Fail as there is no humans
-				rg_round_end(get_pcvar_float(g_pCvarRoundEndDelay), WINSTATUS_TERRORISTS, ROUND_TERRORISTS_WIN, "")
-				client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
+				Finish_Round(ZE_TEAM_ZOMBIE, false, true)
 			}
 		}
 	}
@@ -854,6 +847,78 @@ Set_User_Zombie(id, iAttacker = 0, Float:flDamage = 0.0)
 		rg_set_user_team(id, TEAM_TERRORIST, MODEL_UNASSIGNED)
 	
 	return true
+}
+
+Finish_Round(iTeam, bool:bCallForward = true, bool:bForceEnd = true)
+{
+	// Get round end delay
+	new Float:flRoundEndDelay = get_pcvar_float(g_pCvarRoundEndDelay)
+
+	switch (iTeam)
+	{
+		case ZE_TEAM_HUMAN:
+		{
+			if (bCallForward)
+			{
+				// Execute forward ze_roundend(iWinTeam).
+				ExecuteForward(g_iForwards[FORWARD_ROUNDEND], _/* No return value */, ZE_TEAM_HUMAN)
+			}
+
+			if (bForceEnd)
+			{
+				// Finish the round, and make Humans are winners.
+				rg_round_end(flRoundEndDelay, WINSTATUS_CTS, ROUND_NONE, "", "")
+			}
+
+			// Get HUD type of win message.
+			switch (get_pcvar_num(g_pCvarWinMessageType))
+			{
+				case 0: // Normal Text print_center.
+					client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
+				case 1: // HUD
+				{
+					set_hudmessage(0, 100, 200, -1.0, 0.4, 1, flRoundEndDelay, flRoundEndDelay, 0.0, 0.0)
+					show_hudmessage(0, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")
+				}
+				case 2: // DHUD
+				{
+					set_dhudmessage(0, 100, 200, -1.0, 0.4, 1, flRoundEndDelay, flRoundEndDelay, 0.0, 0.0)
+					show_dhudmessage(0, "%L", LANG_PLAYER, "ESCAPE_SUCCESS")				
+				}
+			}
+		}
+		case ZE_TEAM_ZOMBIE:
+		{
+			if (bCallForward)
+			{
+				// Execute forward ze_roundend(iWinTeam).
+				ExecuteForward(g_iForwards[FORWARD_ROUNDEND], _/* No return value */, ZE_TEAM_ZOMBIE)
+			}
+
+			if (bForceEnd)
+			{
+				// Finish the round, and make Zombies are winners.
+				rg_round_end(flRoundEndDelay, WINSTATUS_TERRORISTS, ROUND_NONE, "", "")
+			}
+
+			// Get HUD type of win message.
+			switch (get_pcvar_num(g_pCvarWinMessageType))
+			{
+				case 0: // Normal Text print_center.
+					client_print(0, print_center, "%L", LANG_PLAYER, "ESCAPE_FAIL")
+				case 1: // HUD
+				{
+					set_hudmessage(200, 0, 0, -1.0, 0.4, 1, flRoundEndDelay, flRoundEndDelay, 0.0, 0.0)
+					show_hudmessage(0, "%L", LANG_PLAYER, "ESCAPE_FAIL")
+				}
+				case 2: // DHUD
+				{
+					set_dhudmessage(200, 0, 0, -1.0, 0.4, 1, flRoundEndDelay, flRoundEndDelay, 0.0, 0.0)
+					show_dhudmessage(0, "%L", LANG_PLAYER, "ESCAPE_FAIL")				
+				}
+			}
+		}
+	}
 }
 
 public Map_Restart()
