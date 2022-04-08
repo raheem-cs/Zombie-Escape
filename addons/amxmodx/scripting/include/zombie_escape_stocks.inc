@@ -231,6 +231,9 @@ stock Set_Knockback(ent, Float:VicOrigin[3], Float:speed, type)
 // Update Player Frags and Deaths
 stock UpdateFrags(iAttacker, iVictim, iFrags, iDeaths, iScoreboard)
 {
+	if (!is_user_connected(iAttacker) || !is_user_connected(iVictim))
+		return
+	
 	// Set attacker frags
 	set_entvar(iAttacker, var_frags, float(pev(iAttacker, pev_frags) + iFrags))
 	
