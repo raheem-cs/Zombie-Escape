@@ -548,7 +548,7 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 		return HC_CONTINUE
 	
 	// Attacker and Victim is in same teams? Skip code blew
-	if (g_bIsZombie[iVictim] == g_bIsZombie[iAttacker])
+	if (get_member(iAttacker, m_iTeam) == get_member(iVictim, m_iTeam))
 		return HC_CONTINUE
 	
 	// In freeze time? Skip all other plugins (Skip the real trace attack event)
