@@ -103,6 +103,17 @@ forward ze_user_infected(iVictim, iInfector);
 forward ze_zombie_appear();
 
 /*
+* Description:	Called when zombies chosen.
+*
+* @param iFirstZombies[] 	Array contains an index of the first Zombies.
+* @param iZombieNum 		Number of the first Zombies.
+*
+* @return					Returns here useless, it will not affect the real appearing event.
+*
+*/
+forward ze_zombie_appear_ex(const iFirstZombies[], iZombieNum);
+
+/*
 * Description:	Called when the chosen zombies released.
 *
 * @return		Returns here useless, it will not affect the real releasing event.

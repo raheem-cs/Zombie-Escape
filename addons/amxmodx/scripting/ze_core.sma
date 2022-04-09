@@ -9,6 +9,7 @@ enum _:TOTAL_FORWARDS
 	FORWARD_PRE_INFECTED,
 	FORWARD_INFECTED,
 	FORWARD_ZOMBIE_APPEAR,
+	FORWARD_ZOMBIE_APPEAR_EX,
 	FORWARD_ZOMBIE_RELEASE,
 	FORWARD_GAME_STARTED_PRE,
 	FORWARD_GAME_STARTED,
@@ -140,6 +141,7 @@ public plugin_init()
 	g_iForwards[FORWARD_PRE_INFECTED] = CreateMultiForward("ze_user_infected_pre", ET_CONTINUE, FP_CELL, FP_CELL, FP_CELL)
 	g_iForwards[FORWARD_INFECTED] = CreateMultiForward("ze_user_infected", ET_IGNORE, FP_CELL, FP_CELL)
 	g_iForwards[FORWARD_ZOMBIE_APPEAR] = CreateMultiForward("ze_zombie_appear", ET_IGNORE)
+	g_iForwards[FORWARD_ZOMBIE_APPEAR_EX] = CreateMultiForward("ze_zombie_appear_ex", ET_IGNORE, FP_STRING, FP_CELL)
 	g_iForwards[FORWARD_ZOMBIE_RELEASE] = CreateMultiForward("ze_zombie_release", ET_IGNORE)
 	g_iForwards[FORWARD_GAME_STARTED_PRE] = CreateMultiForward("ze_game_started_pre", ET_CONTINUE)
 	g_iForwards[FORWARD_GAME_STARTED] = CreateMultiForward("ze_game_started", ET_IGNORE)
@@ -410,7 +412,7 @@ public Countdown_Start(TaskID)
 
 public Choose_Zombies()
 {
-	new iZombies, id, iAliveCount
+	new iFirstZombies[MAX_CLIENTS], iZombies, id, iAliveCount
 	new szAuthId[34], iReqZombies
 	
 	// Get total alive players and required players
@@ -443,6 +445,11 @@ public Choose_Zombies()
 		set_entvar(id, var_health, flHealth)
 		g_bIsZombieFrozen[id] = true
 		set_entvar(id, var_maxspeed, 1.0)
+
+		// Store IDs of first Zombies in Array.
+		iFirstZombies[iZombies] = id
+
+		// New Zombie.
 		iZombies++
 	}
 	
@@ -450,7 +457,10 @@ public Choose_Zombies()
 	{
 		g_bZombieFreezeTime = true
 		set_task(0.1, "Zombies_Speed", ZOMBIES_SPEED, _, _, "b") // Better than PreThink
-		ExecuteForward(g_iForwards[FORWARD_ZOMBIE_APPEAR], g_iFwReturn)
+		ExecuteForward(g_iForwards[FORWARD_ZOMBIE_APPEAR])
+
+		// Execute forward ze_zombie_appear_ex(const iZombies[], iZombieNum)
+		ExecuteForward(g_iForwards[FORWARD_ZOMBIE_APPEAR_EX], _/* No return value */, iFirstZombies, iZombies)
 	}
 	
 	if (bSmartRandom)
