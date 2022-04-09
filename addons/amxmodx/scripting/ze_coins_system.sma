@@ -197,7 +197,7 @@ public ze_user_infected(iVictim, iInfector)
 public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:fDamage, bitsDamageType)
 {
 	// Player Damage Himself
-	if (iVictim == iAttacker)
+	if (iVictim == iAttacker || !is_user_connected(iVictim) || !is_user_connected(iAttacker))
 		return HC_CONTINUE
 	
 	// Two Players From one Team
