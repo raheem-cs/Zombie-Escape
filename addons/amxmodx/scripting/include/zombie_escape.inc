@@ -559,6 +559,29 @@ native ze_zombie_in_fire(id);
 native ze_set_frost_grenade(id, bSet);
 
 /*
+* Description:	Used to set/stop freeze on zombie.
+*
+* @param id			Client index.
+* @param bSet		Boolean value, true will freeze zombie. false will unfreeze zombie.
+* @param flDelay	Frost Nade Freeze Duaration, -1 = duration time exists in ze_frost_duration.
+*
+* @return		true  | If successfully freeze/unfreeze zombie.
+*				false | If returned 1 in ze_frost_pre() forward.
+*						Mean if freeze action stopped by the pre forward.
+*						Or if player already frozen
+*				-1	  | If this zombie not alive.
+*
+* @note			If zombie frozen right now, you can use this to unfreeze him
+*				imediatly by using: ze_set_frost_grenade(id, false)
+*				Same you can freeze him at anytime.
+*				Always check if user alive or not when using this native.
+*				This will throw error in case of invalid player.
+*				You can also freeze alive humans.
+*
+*/
+native ze_set_frost_grenade_ex(id, bSet, Float:flDelay = -1.0);
+
+/*
 * Description:	Tells you if this zombie frozen now or not.
 *
 * @param id		Client index.

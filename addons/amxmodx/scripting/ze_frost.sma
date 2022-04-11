@@ -106,7 +106,7 @@ public plugin_init()
 	
 	// Static Values
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
-	g_iFadeScreenMsg = get_user_msgid("FadeScreen")
+	g_iFadeScreenMsg = get_user_msgid("ScreenFade")
 	g_iDamageMsg = get_user_msgid("Damage")
 }
 
@@ -114,6 +114,7 @@ public plugin_natives()
 {
 	register_native("ze_zombie_in_forst", "native_ze_zombie_in_forst", 1)
 	register_native("ze_set_frost_grenade", "native_ze_set_frost_grenade", 1)
+	register_native("ze_set_frost_grenade_ex", "native_ze_set_frost_grenade_ex", 1)
 }
 
 public native_ze_zombie_in_forst(id)
@@ -148,6 +149,30 @@ public native_ze_set_frost_grenade(id, set)
 	}
 	
 	return set_freeze(id)
+}
+
+public native_ze_set_frost_grenade_ex(id, set, Float:delay)
+{
+	if (!is_user_alive(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player (%d)", id)
+		return -1;
+	}
+	
+	// Unfreeze
+	if (!set)
+	{
+		// Not frozen
+		if (!g_bIsFrozen[id])
+			return true
+		
+		// Remove freeze right away and stop the task
+		RemoveFreeze(id+TASK_FROST_REMOVE)
+		remove_task(id+TASK_FROST_REMOVE)
+		return true
+	}
+	
+	return set_freeze(id, delay)	
 }
 
 public plugin_precache()
@@ -464,7 +489,7 @@ frost_explode(ent)
 	engfunc(EngFunc_RemoveEntity, ent)
 }
 
-set_freeze(victim)
+set_freeze(victim, Float:flUnFreeze = -1.0)
 {
 	// Already frozen
 	if (g_bIsFrozen[victim])
@@ -522,7 +547,6 @@ set_freeze(victim)
 	// Set frozen flag
 	g_bIsFrozen[victim] = true
 	set_entvar(victim, var_maxspeed, 1.0)	
-	ApplyFrozenRendering(victim)
 
 	// Freeze sound
 	static sound[SOUND_MAX_LENGTH]
@@ -544,7 +568,10 @@ set_freeze(victim)
 	ApplyFrozenRendering(victim)
 	
 	// Set a task to remove the freeze
-	set_task(get_pcvar_float(g_pCvarFrostDuration), "RemoveFreeze", victim+TASK_FROST_REMOVE)
+	if (flUnFreeze < 0.0)
+		set_task(get_pcvar_float(g_pCvarFrostDuration), "RemoveFreeze", victim+TASK_FROST_REMOVE)
+	else
+		set_task(flUnFreeze, "RemoveFreeze", victim+TASK_FROST_REMOVE)
 	return true
 }
 
