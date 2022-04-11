@@ -59,7 +59,9 @@ new bool:g_bIsFrozen[33],
 	Float:g_fFrozenRenderingColor[33][3],
 	g_iFrozenRenderingRender[33],
 	Float:g_fFrozenRenderingAmount[33],
-	g_iMaxClients
+	g_iMaxClients,
+	g_iFadeScreenMsg,
+	g_iDamageMsg
 
 // Sprites
 new g_iTrailSpr,
@@ -104,6 +106,8 @@ public plugin_init()
 	
 	// Static Values
 	g_iMaxClients = get_member_game(m_nMaxPlayers)
+	g_iFadeScreenMsg = get_user_msgid("FadeScreen")
+	g_iDamageMsg = get_user_msgid("Damage")
 }
 
 public plugin_natives()
@@ -263,8 +267,6 @@ public Fw_PreThink_Post(id)
 	{
 		// Stop and Freeze Zombie
 		set_entvar(id, var_velocity, Float:{0.0,0.0,0.0})
-		set_entvar(id, var_maxspeed, 1.0)
-		ApplyFrozenRendering(id)
 	}
 }
 
@@ -507,7 +509,7 @@ set_freeze(victim)
 	// Freeze icon?
 	if (get_pcvar_num(g_pCvarFrostHudIcon))
 	{
-		message_begin(MSG_ONE_UNRELIABLE, get_user_msgid("Damage"), _, victim)
+		message_begin(MSG_ONE_UNRELIABLE, g_iDamageMsg, _, victim)
 		write_byte(0) // damage save
 		write_byte(0) // damage take
 		write_long(DMG_DROWN) // damage type - DMG_FREEZE
@@ -519,14 +521,16 @@ set_freeze(victim)
 	
 	// Set frozen flag
 	g_bIsFrozen[victim] = true
-	
+	set_entvar(victim, var_maxspeed, 1.0)	
+	ApplyFrozenRendering(victim)
+
 	// Freeze sound
 	static sound[SOUND_MAX_LENGTH]
 	ArrayGetString(g_szFrostGrenadePlayerSound, random_num(0, ArraySize(g_szFrostGrenadePlayerSound) - 1), sound, charsmax(sound))
 	emit_sound(victim, CHAN_BODY, sound, 1.0, ATTN_NORM, 0, PITCH_NORM)
 	
 	// Add a blue tint to their screen
-	message_begin(MSG_ONE, get_user_msgid("ScreenFade"), _, victim)
+	message_begin(MSG_ONE, g_iFadeScreenMsg, _, victim)
 	write_short(0) // duration
 	write_short(0) // hold time
 	write_short(0x0004) // fade type
@@ -574,7 +578,8 @@ public RemoveFreeze(taskid)
 {
 	// Remove frozen flag
 	g_bIsFrozen[ID_FROST_REMOVE] = false
-	
+	rg_reset_maxspeed(ID_FROST_REMOVE) // This is will reset zombie speed, which leads to set zombie speed from ze_core.
+
 	// Restore rendering
 	new iRed = floatround(g_fFrozenRenderingColor[ID_FROST_REMOVE][0]),
 	iGreen = floatround(g_fFrozenRenderingColor[ID_FROST_REMOVE][1]),
