@@ -256,13 +256,15 @@ public Fw_PlayerKilled_Post(id)
 
 public Fw_RestMaxSpeed_Post(id)
 {
-	if (!g_bIsZombie[id])
+	static Float:flMaxSpeed
+	get_entvar(id, var_maxspeed, flMaxSpeed)
+
+	// Player is Alive and not Frozen?
+	if (is_user_alive(id) && flMaxSpeed != 1.0)
 	{
-		static Float:flMaxSpeed
-		get_entvar(id, var_maxspeed, flMaxSpeed)
-		
-		if (flMaxSpeed != 1.0 && is_user_alive(id))
-		{
+		// Player is Human?
+		if (!g_bIsZombie[id])
+		{		
 			if (g_bHSpeedUsed[id])
 			{
 				// Set New Human Speed Factor
@@ -274,16 +276,30 @@ public Fw_RestMaxSpeed_Post(id)
 			set_entvar(id, var_maxspeed, flMaxSpeed + get_pcvar_float(g_pCvarHumanSpeedFactor))
 			return HC_CONTINUE
 		}
-	}
-	else
-	{
-		if (g_bZombieFreezeTime)
+		else // Zombie.
 		{
-			// Fix for zombie weapon switching that can give him small speed in zombie freeze time
-			set_entvar(id, var_maxspeed, 1.0)
-		}
+			if (g_bZombieFreezeTime)
+			{
+				// Freeze Zombie.
+				set_entvar(id, var_maxspeed, 1.0)
+				return HC_CONTINUE
+			}
+
+			// Zombie have custom maxspeed?
+			if (g_bZSpeedUsed[id])
+			{
+				// Set zombie maxspeed from native.
+				set_entvar(id, var_maxspeed, float(g_iZSpeedSet[id]))
+				return HC_CONTINUE
+			}
+
+			// Set Zombie maxspeed from cvar.
+			set_entvar(id, var_maxspeed, get_pcvar_float(g_pCvarZombieSpeed))
+			return HC_CONTINUE
+		}		
 	}
 	
+	// Prevent resetting player maxspeed.
 	return HC_SUPERCEDE
 }
 
@@ -309,7 +325,6 @@ public Fw_PlayerSpawn_Post(id)
 				// Zombie Chosen and zombies Frozen, Spawn him as zombie and Freeze Him
 				Set_User_Zombie(id)
 				g_bIsZombieFrozen[id] = true
-				set_entvar(id, var_maxspeed, 1.0)
 			}
 			else
 			{
@@ -443,8 +458,9 @@ public Choose_Zombies()
 		// Infect player.
 		Set_User_Zombie(id)
 		set_entvar(id, var_health, flHealth)
+
+		// Set zombie Frozen flag 
 		g_bIsZombieFrozen[id] = true
-		set_entvar(id, var_maxspeed, 1.0)
 
 		// Store IDs of first Zombies in Array.
 		iFirstZombies[iZombies] = id
@@ -455,8 +471,10 @@ public Choose_Zombies()
 	
 	if (iZombies > 0)
 	{
+		// Freeze all Zombies.
 		g_bZombieFreezeTime = true
-		set_task(0.1, "Zombies_Speed", ZOMBIES_SPEED, _, _, "b") // Better than PreThink
+
+		// Execute forward ze_zombie_appear().
 		ExecuteForward(g_iForwards[FORWARD_ZOMBIE_APPEAR])
 
 		// Execute forward ze_zombie_appear_ex(const iZombies[], iZombieNum)
@@ -511,33 +529,7 @@ public ReleaseZombie()
 		if (is_user_alive(id) && g_bIsZombie[id])
 		{
 			g_bIsZombieFrozen[id] = false
-		}
-	}
-}
-
-public Zombies_Speed(TaskID)
-{
-	for(new id = 1; id <= g_iMaxClients; id++)
-	{
-		if(!is_user_alive(id) || !g_bIsZombie[id])
-			continue
-		
-		if (g_bIsZombieFrozen[id])
-		{
-			// Zombie & Frozen, then Freeze him
-			set_entvar(id, var_maxspeed, 1.0)
-		}
-		else
-		{
-			if (g_bZSpeedUsed[id])
-			{
-				// Zombie but Not Frozen the set his speed form .cfg
-				set_entvar(id, var_maxspeed, float(g_iZSpeedSet[id]))
-				continue;
-			}
-				
-			// Zombie but Not Frozen the set his speed form .cfg
-			set_entvar(id, var_maxspeed, get_pcvar_float(g_pCvarZombieSpeed))
+			rg_reset_maxspeed(id)
 		}
 	}
 }
@@ -552,7 +544,7 @@ public Fw_TraceAttack_Pre(iVictim, iAttacker, Float:flDamage, Float:flDirection[
 		return HC_CONTINUE
 	
 	// In freeze time? Skip all other plugins (Skip the real trace attack event)
-	if (g_bIsZombieFrozen[iVictim] || g_bIsZombieFrozen[iAttacker])
+	if (g_bZombieFreezeTime)
 		return HC_SUPERCEDE
 	
 	if (g_bIsZombie[iAttacker])
