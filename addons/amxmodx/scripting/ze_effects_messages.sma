@@ -81,10 +81,18 @@ public ze_user_infected(iVictim, iInfector)
 		set_hudmessage(get_pcvar_num(g_pCvarInfectColors[Red]), get_pcvar_num(g_pCvarInfectColors[Green]), get_pcvar_num(g_pCvarInfectColors[Blue]), 0.05, 0.45, 1, 0.0, 6.0, 0.0, 0.0)
 		ShowSyncHudMsg(0, g_iInfectionMsg, "%L", LANG_PLAYER, "INFECTION_NOTICE", szAttackerName, szVictimName)
 	}
+
+	// Remove human Leader Glow when infected.
+	if (get_pcvar_num(g_pCvarLeaderGlow) && (g_iEscapeRank[RANK_FIRST] == iVictim))
+	{
+		Set_Rendering(iVictim)
+	}	
 }
 
-public ze_game_started()
+public ze_game_started_pre()
 {
+	// We're used this in ze_game_started_pre(), Because if we put it in ze_gamestarted()
+	// When prevent the ze_game_started() forward from ze_game_started_pre(), The task is never removed.	
 	remove_task(TASK_MESSAGE)
 }
 
@@ -97,20 +105,26 @@ public ze_zombie_appear()
 
 public Show_Message()
 {
-	for (new id = 1; id <= g_iMaxClients; id++)
+	static Float:fVelocity[3], bool:bLeaderGlow, bool:bGlowRandomColors, iGlowColors[3], id, i
+
+	// Get glow color.
+	bLeaderGlow = get_pcvar_num(g_pCvarLeaderGlow) ? true : false
+	bGlowRandomColors = get_pcvar_num(g_pCvarLeaderGlowRandom) ? true : false
+	iGlowColors[Red] = get_pcvar_num(g_pCvarLeaderGlowColors[Red])
+	iGlowColors[Green] = get_pcvar_num(g_pCvarLeaderGlowColors[Green])
+	iGlowColors[Blue] = get_pcvar_num(g_pCvarLeaderGlowColors[Blue])
+
+	for (id = 1; id <= g_iMaxClients; id++)
 	{
 		if (!is_user_alive(id))
 			continue
 	
 		// Add Point for Who is Running Fast
 		if(!ze_is_user_zombie(id))
-		{
-			new Float:fVelocity[3], iSpeed
-			
+		{			
 			get_entvar(id, var_velocity, fVelocity)
-			iSpeed = floatround(vector_length(fVelocity))
 			
-			switch(iSpeed)
+			switch(floatround(vector_length(fVelocity)))
 			{
 				// Starting From Lowest Weapon speed, Finishing at Highest speed (Player maybe have more than 500)
 				case 210..229: g_iEscapePoints[id] += 1
@@ -123,19 +137,19 @@ public Show_Message()
 			}
 		}
 	
-		if (get_pcvar_num(g_pCvarLeaderGlow) != 0)
+		if (bLeaderGlow)
 		{
 			// Set Glow For Escape Leader
-			for (new i = 1; i <= g_iMaxClients; i++)
+			for (i = 1; i <= g_iMaxClients; i++)
 			{
-				if (!is_user_alive(i) || g_bStopRendering[i])
+				if (!is_user_alive(i) || ze_is_user_zombie(i) || g_bStopRendering[i])
 					continue
 			
 				if (g_iEscapeRank[RANK_FIRST] == i) // The Leader id
 				{
-					if (get_pcvar_num(g_pCvarLeaderGlowRandom) == 0)
+					if (!bGlowRandomColors)
 					{
-						Set_Rendering(i, kRenderFxGlowShell, get_pcvar_num(g_pCvarLeaderGlowColors[Red]), get_pcvar_num(g_pCvarLeaderGlowColors[Green]), get_pcvar_num(g_pCvarLeaderGlowColors[Blue]), kRenderNormal, 40)
+						Set_Rendering(i, kRenderFxGlowShell, iGlowColors[Red], iGlowColors[Green], iGlowColors[Blue], kRenderNormal, 40)
 					}
 					else
 					{
@@ -161,9 +175,10 @@ public Show_Speed_Message(id)
 	{
 		case 1: // Leader Mode
 		{
+			static szLeader[32], iLeaderID
+
 			Speed_Stats()
-			new iLeaderID = g_iEscapeRank[RANK_FIRST]
-			new szLeader[32]
+			iLeaderID = g_iEscapeRank[RANK_FIRST]
 			
 			if (is_user_alive(iLeaderID) && !ze_is_user_zombie(iLeaderID) && g_iEscapePoints[iLeaderID] != 0)
 			{
@@ -183,8 +198,7 @@ public Show_Speed_Message(id)
 		{
 			Speed_Stats()
 			
-			new szFirst[32], szSecond[32], szThird[32]
-			new iFirstID, iSecondID, iThirdID
+			static szFirst[32], szSecond[32], szThird[32], iFirstID, iSecondID, iThirdID
 			
 			iFirstID = g_iEscapeRank[RANK_FIRST]
 			iSecondID = g_iEscapeRank[RANK_SECOND]
@@ -225,12 +239,12 @@ public Show_Speed_Message(id)
 
 public Speed_Stats()
 {
-	new iHighest, iCurrentID
+	static iHighest, iCurrentID, id
 	
 	// Rank First
 	iHighest = 0; iCurrentID = 0
 	
-	for(new id = 1; id <= g_iMaxClients; id++)
+	for(id = 1; id <= g_iMaxClients; id++)
 	{
 		if(!is_user_alive(id) || ze_is_user_zombie(id))
 			continue
@@ -247,7 +261,7 @@ public Speed_Stats()
 	// Rank Second
 	iHighest = 0; iCurrentID = 0
 	
-	for(new id = 1; id <= g_iMaxClients; id++)
+	for(id = 1; id <= g_iMaxClients; id++)
 	{
 		if(!is_user_alive(id) || ze_is_user_zombie(id))
 			continue
@@ -267,7 +281,7 @@ public Speed_Stats()
 	// Rank Third
 	iHighest = 0; iCurrentID = 0
 	
-	for(new id = 1; id <= g_iMaxClients; id++)
+	for(id = 1; id <= g_iMaxClients; id++)
 	{
 		if(!is_user_alive(id) || ze_is_user_zombie(id))
 			continue

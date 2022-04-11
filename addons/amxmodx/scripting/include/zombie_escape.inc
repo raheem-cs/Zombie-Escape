@@ -559,7 +559,7 @@ native ze_zombie_in_fire(id);
 native ze_set_frost_grenade(id, bSet);
 
 /*
-* Description:	Used to set/stop freeze on zombie.
+* Description:	Used to set/stop freeze on zombie with specific duration.
 *
 * @param id			Client index.
 * @param bSet		Boolean value, true will freeze zombie. false will unfreeze zombie.
