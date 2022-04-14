@@ -582,10 +582,22 @@ public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:flDamage, bitsDa
 		// Remove Shock Pain
 		set_member(iVictim, m_flVelocityModifier, 1.0)
 		
+		// Knockback is disabled from native.
+		if (g_bIsKnockBackUsed[iVictim] && g_flUserKnockback[iVictim] <= 0.0)
+			return HC_CONTINUE
+
+		// Get knockback of Zombie.
+		static Float:flKnockback
+		flKnockback = get_pcvar_float(g_pCvarZombieKnockback)
+
+		// Knockback is disabled from Cvar.
+		if (flKnockback <= 0.0)
+			return HC_CONTINUE
+
 		// Set Knockback
 		static Float:flOrigin[3]
 		get_entvar(iAttacker, var_origin, flOrigin)
-		Set_Knockback(iVictim, flOrigin, g_bIsKnockBackUsed[iVictim] ? g_flUserKnockback[iVictim]:get_pcvar_float(g_pCvarZombieKnockback), 2)
+		Set_Knockback(iVictim, flOrigin, g_bIsKnockBackUsed[iVictim] ? g_flUserKnockback[iVictim] : flKnockback, 2)
 	}
 	
 	return HC_CONTINUE
