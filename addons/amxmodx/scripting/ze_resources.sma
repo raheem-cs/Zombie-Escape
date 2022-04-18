@@ -476,7 +476,7 @@ public ze_game_started()
 	
 	for(new id = 1; id <= g_iMaxPlayers; id++)
 	{
-		if(!is_user_connected(id))
+		if(!is_user_connected(id) || !g_bReadySound[id])
 			continue
 
 		PlaySound(id, szSound)
