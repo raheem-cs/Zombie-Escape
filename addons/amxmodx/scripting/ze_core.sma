@@ -113,7 +113,9 @@ public plugin_natives()
 	register_native("ze_reset_user_gravity", "native_ze_reset_user_gravity", 1)
 	
 	register_native("ze_remove_zombie_freeze_msg", "native_ze_remove_zombie_freeze_msg", 1)
+
 	register_native("ze_force_start_gamemode", "native_ze_force_start_gamemode", 0)
+	register_native("ze_is_gamemode_started", "native_ze_is_gamemode_started", 0)
 }
 
 public plugin_init()
@@ -1187,4 +1189,11 @@ public native_ze_force_start_gamemode()
 	// Start gamemode.
 	Choose_Zombies()
 	return true
+}
+
+public native_ze_is_gamemode_started()
+{
+	if (g_bIsGameStarted)
+		return true
+	return false
 }

@@ -888,4 +888,15 @@ native ze_is_ambiance_sounds_enabled(id);
 *					false | If sounds disabled.
 *
 */
-native ze_force_start_gamemode(countdown = 1);
+native ze_force_start_gamemode();
+
+/*
+* Description:		Check gamemode is started or not yet.
+*
+* @noparam
+*
+* @return			true  | If gamemode is started.
+*					false | Otherwise.
+*
+*/
+native ze_is_gamemode_started();
