@@ -87,6 +87,13 @@ public ze_game_started()
 
 public Countdown_Start()
 {
+	// Check gamemode is started or not yet?
+	if (ze_is_gamemode_started())
+	{
+		remove_task(TASK_COUNTDOWN) // Remove the task
+		return // Block the execution of the blew code	
+	}
+
 	if ((g_iCountDown - 1 < 0) || !ze_is_game_started())
 	{
 		remove_task(TASK_COUNTDOWN) // Remove the task
