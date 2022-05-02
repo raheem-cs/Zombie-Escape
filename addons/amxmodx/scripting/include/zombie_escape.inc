@@ -295,6 +295,20 @@ native ze_get_zombies_number();
 native ze_set_user_zombie(id);
 
 /*
+* Description:	Set user to zombie team.
+*
+* @param id			Client index.
+* @param iInfector	Infector index, 0 = Server.
+*
+* @return			true  | If set successfully
+*					false | If this player not connected
+*
+* @note				This will throw error in case of invalid player.
+*
+*/
+native ze_set_user_zombie_ex(id, iInfector);
+
+/*
 * Description:	Set user to human team.
 *
 * @param id		Client index.

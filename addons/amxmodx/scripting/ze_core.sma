@@ -99,6 +99,8 @@ public plugin_natives()
 	
 	register_native("ze_set_user_zombie", "native_ze_set_user_zombie", 1)
 	register_native("ze_set_user_human", "native_ze_set_user_human", 1)
+	register_native("ze_set_user_zombie_ex", "native_ze_set_user_zombie_ex", 1)
+
 	register_native("ze_set_human_speed_factor", "native_ze_set_human_speed_factor", 1)
 	register_native("ze_set_zombie_speed", "native_ze_set_zombie_speed", 1)
 	
@@ -1196,4 +1198,22 @@ public native_ze_is_gamemode_started()
 	if (g_bIsGameStarted)
 		return true
 	return false
+}
+
+public native_ze_set_user_zombie_ex(id, iInfector)
+{
+	if (!is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false;
+	}
+
+	if (!is_user_connected(iInfector))
+	{
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", iInfector)
+		return false;
+	}	
+	
+	Set_User_Zombie(id, iInfector, 0.0)
+	return true;
 }
