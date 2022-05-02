@@ -1,9 +1,5 @@
 #include <zombie_escape>
 
-// Defines
-#define HUD_MONEY				(1<<5)
-#define HUD_RADAR_HEALTH_ARMOR	(1<<3)
-
 // Variables
 new g_iFwSpawn
 
@@ -16,11 +12,12 @@ public plugin_init()
 {
 	register_plugin("[ZE] Blocked Messages & Events", ZE_VERSION, AUTHORS)
 	
+	// Events.
+	register_event("ResetHUD", "fw_ResetHUDs_Event", "b")
+
 	// Block some messages
 	register_message(get_user_msgid("TextMsg"), "Message_TextMsg")
 	register_message(get_user_msgid("SendAudio"), "Message_SendAudio")
-	register_message(get_user_msgid("StatusIcon"), "Message_StatusIcon")
-	register_message(get_user_msgid("HideWeapon"), "Message_HideWeapon")
 	
 	// Fakemeta
 	register_forward(FM_ClientKill, "Fw_ClientKill_Pre", 0)
@@ -40,6 +37,15 @@ public plugin_precache()
 {
 	// Prevent Entities from being spawned like (Rain, Snow, Fog) It's registered here as this called before plugin_init()
 	g_iFwSpawn = register_forward(FM_Spawn, "Fw_Spawn")
+}
+
+// Forward called after init.
+public plugin_cfg()
+{
+	// Block buyzone in Map.
+	set_member_game(m_bTCantBuy, true)
+	set_member_game(m_bCTCantBuy, true)
+	set_member_game(m_bMapHasBuyZone, false)
 }
 
 public Message_TextMsg()
@@ -66,32 +72,18 @@ public Message_SendAudio()
 	return PLUGIN_CONTINUE
 }
 
-public Message_StatusIcon(Index, Dest, iEnt)
+public fw_ResetHUDs_Event(id)
 {
-	static szMsg[8]
-	get_msg_arg_string(2, szMsg ,charsmax(szMsg))
-	
-	// Block Buyzone
-	if (equal(szMsg, "buyzone") && get_msg_arg_int(1))
-	{
-		set_pdata_int(iEnt, 235, get_pdata_int(iEnt, 235) & ~(1<<0))
-		return PLUGIN_HANDLED
-	}
-	
-	return PLUGIN_CONTINUE
-}
+	new iHideHUDs
 
-public Message_HideWeapon(Index, Dest, iEnt)
-{
 	if (get_pcvar_num(g_pCvarBlockMoneyHUD))
-	{
-		set_msg_arg_int(1, ARG_BYTE, get_msg_arg_int(1) | HUD_MONEY)
-	}
+		iHideHUDs |= HIDEHUD_HEALTH
 	
 	if (get_pcvar_num(g_pCvarBlockOtherHUD))
-	{
-		set_msg_arg_int(1, ARG_BYTE, get_msg_arg_int(1) | HUD_RADAR_HEALTH_ARMOR)
-	}
+		iHideHUDs |= HIDEHUD_MONEY
+
+	// Hide HUDs for player.
+	set_member(id, m_iHideHUD, iHideHUDs)
 }
 
 public Fw_ClientKill_Pre(id)
