@@ -1,7 +1,7 @@
 /*================================================================================
 	
 	----------------------------------
-	-*- [CS] Weapon Models API 1.1 -*-
+	-*- [CS] Weapon Models API 1.2 -*-
 	----------------------------------
 	
 	- Allows easily replacing player's view models and weapon models in CS and CZ
@@ -9,7 +9,6 @@
 ================================================================================*/
 
 #include <amxmodx>
-#include <cstrike>
 #include <fakemeta>
 #include <hamsandwich>
 #include <reapi>
@@ -22,10 +21,8 @@
 // CS Weapon CBase Offsets (win32)
 const PDATA_SAFE = 2
 const OFFSET_WEAPONOWNER = 41
+const OFFSET_WEAPONTYPE = 43
 const OFFSET_LINUX_WEAPONS = 4 // weapon offsets are only 4 steps higher on Linux
-
-// CS Player CBase Offsets (win32)
-const OFFSET_ACTIVE_ITEM = 373
 
 // Weapon entity names
 new const WEAPONENTNAMES[][] = { "", "weapon_p228", "", "weapon_scout", "weapon_hegrenade", "weapon_xm1014", "weapon_c4", "weapon_mac10",
@@ -44,12 +41,12 @@ new g_CustomWeaponModelsCount
 
 public plugin_init()
 {
-	register_plugin("[CS] Weapon Models API", "1.1", "WiLS")
+	register_plugin("[CS] Weapon Models API", "1.2", "WiLS/ZE Dev Team")
 	
 	for (new i = 1; i < sizeof WEAPONENTNAMES; i++)
 		if (WEAPONENTNAMES[i][0]) RegisterHam(Ham_Item_Deploy, WEAPONENTNAMES[i], "fw_Item_Deploy_Post", 1)
 	
-	g_MaxPlayers = get_maxplayers()
+	g_MaxPlayers = get_member_game(m_nMaxPlayers)
 	
 	// Initialize dynamic arrays
 	g_CustomViewModelsNames = ArrayCreate(128, 1)
@@ -104,8 +101,8 @@ public native_set_player_view_model(plugin_id, num_params)
 		ReplaceCustomViewModel(id, weaponid, view_model)
 	
 	// Get current weapon's id
-	new current_weapon_ent = fm_cs_get_current_weapon_ent(id)
-	new current_weapon_id = pev_valid(current_weapon_ent) ? cs_get_weapon_id(current_weapon_ent) : -1
+	new current_weapon_ent = get_member(id, m_pActiveItem)
+	new current_weapon_id = pev_valid(current_weapon_ent) ? fm_cs_get_weapon_id(current_weapon_ent) : -1
 	
 	// Model was set for the current weapon?
 	if (weaponid == current_weapon_id)
@@ -141,8 +138,8 @@ public native_reset_player_view_model(plugin_id, num_params)
 	RemoveCustomViewModel(id, weaponid)
 	
 	// Get current weapon's id
-	new current_weapon_ent = fm_cs_get_current_weapon_ent(id)
-	new current_weapon_id = pev_valid(current_weapon_ent) ? cs_get_weapon_id(current_weapon_ent) : -1
+	new current_weapon_ent = get_member(id, m_pActiveItem)
+	new current_weapon_id = pev_valid(current_weapon_ent) ? fm_cs_get_weapon_id(current_weapon_ent) : -1
 	
 	// Model was reset for the current weapon?
 	if (weaponid == current_weapon_id)
@@ -181,8 +178,8 @@ public native_set_player_weap_model(plugin_id, num_params)
 		ReplaceCustomWeaponModel(id, weaponid, weapon_model)
 	
 	// Get current weapon's id
-	new current_weapon_ent = fm_cs_get_current_weapon_ent(id)
-	new current_weapon_id = pev_valid(current_weapon_ent) ? cs_get_weapon_id(current_weapon_ent) : -1
+	new current_weapon_ent = get_member(id, m_pActiveItem)
+	new current_weapon_id = pev_valid(current_weapon_ent) ? fm_cs_get_weapon_id(current_weapon_ent) : -1
 	
 	// Model was reset for the current weapon?
 	if (weaponid == current_weapon_id)
@@ -218,8 +215,8 @@ public native_reset_player_weap_model(plugin_id, num_params)
 	RemoveCustomWeaponModel(id, weaponid)
 	
 	// Get current weapon's id
-	new current_weapon_ent = fm_cs_get_current_weapon_ent(id)
-	new current_weapon_id = pev_valid(current_weapon_ent) ? cs_get_weapon_id(current_weapon_ent) : -1
+	new current_weapon_ent = get_member(id, m_pActiveItem)
+	new current_weapon_id = pev_valid(current_weapon_ent) ? fm_cs_get_weapon_id(current_weapon_ent) : -1
 	
 	// Model was reset for the current weapon?
 	if (weaponid == current_weapon_id)
@@ -315,7 +312,7 @@ public fw_Item_Deploy_Post(weapon_ent)
 		return;
 	
 	// Get weapon's id
-	new weaponid = cs_get_weapon_id(weapon_ent)
+	new weaponid = fm_cs_get_weapon_id(weapon_ent)
 	
 	// Custom view model?
 	if (g_CustomViewModelsPosition[owner][weaponid] != POSITION_NULL)
@@ -343,12 +340,11 @@ stock fm_cs_get_weapon_ent_owner(ent)
 	return get_pdata_cbase(ent, OFFSET_WEAPONOWNER, OFFSET_LINUX_WEAPONS);
 }
 
-// Get User Current Weapon Entity
-stock fm_cs_get_current_weapon_ent(id)
+stock fm_cs_get_weapon_id(ent)
 {
 	// Prevent server crash if entity's private data not initalized
-	if (pev_valid(id) != PDATA_SAFE)
+	if (pev_valid(ent) != PDATA_SAFE)
 		return -1;
-	
-	return get_pdata_cbase(id, OFFSET_ACTIVE_ITEM);
+
+	return get_pdata_int(ent, OFFSET_WEAPONTYPE, OFFSET_LINUX_WEAPONS)
 }
