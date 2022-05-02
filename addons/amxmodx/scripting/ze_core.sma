@@ -50,6 +50,7 @@ new g_iAliveHumansNum,
 	g_iZSpeedSet[33],
 	g_iUserGravity[33],
 	bool:g_bGameStarted, 
+	bool:g_bIsGameStarted,
 	bool:g_bIsZombie[33], 
 	bool:g_bIsZombieFrozen[33], 
 	bool:g_bZombieFreezeTime, 
@@ -112,6 +113,7 @@ public plugin_natives()
 	register_native("ze_reset_user_gravity", "native_ze_reset_user_gravity", 1)
 	
 	register_native("ze_remove_zombie_freeze_msg", "native_ze_remove_zombie_freeze_msg", 1)
+	register_native("ze_force_start_gamemode", "native_ze_force_start_gamemode", 0)
 }
 
 public plugin_init()
@@ -383,6 +385,7 @@ public New_Round()
 	// Round Starting
 	g_bIsRoundEnding = false
 	g_bEndCalled = false
+	g_bIsGameStarted = false
 }
 
 // Score Message Task
@@ -498,6 +501,9 @@ public Choose_Zombies()
 		}
 	}
 	
+	// Gamemode is started.
+	g_bIsGameStarted = true
+
 	// 2 is Hardcoded Value, It's Fix for the countdown to work correctly
 	g_iCountDown = get_pcvar_num(g_pCvarZombieReleaseTime) - 2
 	
@@ -1166,4 +1172,19 @@ public native_ze_remove_zombie_freeze_msg()
 	}
 	
 	return false
+}
+
+public native_ze_force_start_gamemode()
+{
+	// Gamemode is already started?
+	if (g_bIsGameStarted)
+		return false
+
+	// Remove countdown.
+	if (task_exists(TASK_COUNTDOWN))
+		remove_task(TASK_COUNTDOWN)
+
+	// Start gamemode.
+	Choose_Zombies()
+	return true
 }

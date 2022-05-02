@@ -878,3 +878,14 @@ native ze_is_starting_sounds_enabled(id);
 *
 */
 native ze_is_ambiance_sounds_enabled(id);
+
+/*
+* Description:		Force start gamemode and remove countdown.
+*
+* @noparam
+*
+* @return			true  | If set successfully
+*					false | If sounds disabled.
+*
+*/
+native ze_force_start_gamemode(countdown = 1);
