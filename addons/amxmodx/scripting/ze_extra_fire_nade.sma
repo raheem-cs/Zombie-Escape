@@ -33,18 +33,15 @@ public ze_select_item_post(id, itemid)
 	if (itemid != g_iItemID)
 		return
 	
-	// Get Weapon ID
-	new iWpnID = get_weaponid("weapon_hegrenade")
-	
 	// Player Don't have Frost Grenade then give him
-	if (rg_get_user_bpammo(id, WeaponIdType:iWpnID) == 0)
+	if (rg_get_user_bpammo(id, WEAPON_HEGRENADE) == 0)
 	{
 		rg_give_item(id, "weapon_hegrenade", GT_APPEND)
 	}
 	else
 	{
 		// Player have, Increase his Back Pack Ammo, And play buy BP sound + Hud Flash
-		rg_set_user_bpammo(id, WeaponIdType:iWpnID, rg_get_user_bpammo(id, WeaponIdType:iWpnID) + 1)
+		rg_set_user_bpammo(id, WEAPON_HEGRENADE, rg_get_user_bpammo(id, WEAPON_HEGRENADE) + 1)
 		emit_sound(id, CHAN_ITEM, g_szBuyAmmoSound, 1.0, ATTN_NORM, 0, PITCH_NORM)
 		Show_Given_BPAmmo(id, 12, 1) // HE Grenade AmmoType Const = 12
 	}
