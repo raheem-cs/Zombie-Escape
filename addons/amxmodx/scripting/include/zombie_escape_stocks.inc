@@ -336,10 +336,11 @@ stock Precache_Sky(const szSkyName[])
 }
 
 // Add Commas
-stock AddCommas(iNum , szOutput[] , iLen)  
+stock AddCommas(iNum, szOutput[], iLen)  
 {  
-    new szTmp[15] , iOutputPos , iNumPos , iNumLen 
-      
+    static szTmp[15], iOutputPos, iNumPos, iNumLen 
+    szTmp="", iOutputPos=0, iNumPos=0, iNumLen=0
+
     if (iNum < 0)  
     {  
         szOutput[iOutputPos++] = '-' 
@@ -350,7 +351,7 @@ stock AddCommas(iNum , szOutput[] , iLen)
 
     if (iNumLen <= 3)  
     {  
-        iOutputPos += copy(szOutput[iOutputPos] , iLen , szTmp)
+        iOutputPos += copy(szOutput[iOutputPos], iLen, szTmp)
     }  
     else  
     {  
@@ -361,8 +362,10 @@ stock AddCommas(iNum , szOutput[] , iLen)
             if((iNumLen - iNumPos) && !((iNumLen - iNumPos) % 3))   
                 szOutput[iOutputPos++] = ','
         }
+
         szOutput[iOutputPos] = EOS 
-    }  
+    }
+
     return iOutputPos
 }
 
