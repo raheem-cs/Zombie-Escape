@@ -618,31 +618,20 @@ public ze_roundend(WinTeam)
 	
 	new szSound[SOUND_MAX_LENGTH]
 	
-	if (WinTeam == ZE_TEAM_ZOMBIE)
+	switch (WinTeam)
 	{
-		ArrayGetString(g_szEscapeFailSound, random_num(0, ArraySize(g_szEscapeFailSound) - 1), szSound, charsmax(szSound))
-		
-		for(new id = 1; id <= g_iMaxPlayers; id++)
+		case ZE_TEAM_ZOMBIE:
 		{
-			if(!is_user_connected(id))
-				continue
-
-			PlaySound(id, szSound)
+			ArrayGetString(g_szEscapeFailSound, random_num(0, ArraySize(g_szEscapeFailSound) - 1), szSound, charsmax(szSound))
 		}
-	}
-	
-	if (WinTeam == ZE_TEAM_HUMAN)
-	{
-		ArrayGetString(g_szEscapeSuccessSound, random_num(0, ArraySize(g_szEscapeSuccessSound) - 1), szSound, charsmax(szSound))
-		
-		for(new id = 1; id <= g_iMaxPlayers; id++)
+		case ZE_TEAM_HUMAN:
 		{
-			if (!is_user_connected(id))
-				continue
-
-			PlaySound(id, szSound)
-		}
+			ArrayGetString(g_szEscapeSuccessSound, random_num(0, ArraySize(g_szEscapeSuccessSound) - 1), szSound, charsmax(szSound))
+		}		
 	}
+
+	// Play sound for all players.
+	PlaySound(0, szSound)
 }
 
 public Fw_AddItemToPlayer_Post(iItem, id)
