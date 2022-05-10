@@ -76,10 +76,10 @@ public fw_ResetHUDs_Event(id)
 {
 	new iHideHUDs
 
-	if (get_pcvar_num(g_pCvarBlockMoneyHUD))
+	if (get_pcvar_num(g_pCvarBlockOtherHUD))
 		iHideHUDs |= HIDEHUD_HEALTH
 	
-	if (get_pcvar_num(g_pCvarBlockOtherHUD))
+	if (get_pcvar_num(g_pCvarBlockMoneyHUD))
 		iHideHUDs |= HIDEHUD_MONEY
 
 	// Hide HUDs for player.
