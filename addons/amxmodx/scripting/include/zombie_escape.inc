@@ -914,3 +914,23 @@ native ze_force_start_gamemode();
 *
 */
 native ze_is_gamemode_started();
+
+/*
+* Description:		Show HUDs info for player.
+*
+* @param 			Client index
+*
+* @return 			true  | If HUDs is shown successfully.
+*					false | If this player not connected.
+*/
+native ze_show_user_hud_info(id);
+
+/*
+* Description:		Hide HUDs info for player.
+*
+* @param 			Client index
+*
+* @return 			true  | If HUDs is hidden successfully.
+*					false | If this player not connected.
+*/
+native ze_hide_user_hud_info(id);

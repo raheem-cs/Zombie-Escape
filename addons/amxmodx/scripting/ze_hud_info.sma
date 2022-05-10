@@ -29,6 +29,12 @@ new g_pCvarHudInfoMode,
 	g_pCvarHumanInfoColors[3],
 	g_pCvarSpecInfoColors[3]
 
+public plugin_natives()
+{
+	register_native("ze_show_user_hud_info", "native_show_user_hud_info", 1)
+	register_native("ze_hide_user_hud_info", "native_hide_user_hud_info", 1)
+}
+
 public plugin_init()
 {
 	register_plugin("[ZE] Hud Information", ZE_VERSION, AUTHORS)
@@ -68,10 +74,19 @@ public client_disconnected(id)
 
 public ShowHUD(taskid)
 {
-	if (get_pcvar_num(g_pCvarHudInfoMode) == 0)
+	// Static.
+	static iHudInfoMode
+
+	// Get HUD info mode.
+	iHudInfoMode = get_pcvar_num(g_pCvarHudInfoMode)
+
+	if (iHudInfoMode == 0)
 		return
 	
-	new iPlayer = ID_SHOWHUD
+	// Static's.
+	static szName[32], szHealth[15], iPlayer
+
+	iPlayer = ID_SHOWHUD
 	
 	if (!is_user_alive(iPlayer))
 	{
@@ -83,188 +98,225 @@ public ShowHUD(taskid)
 	
 	if(iPlayer != ID_SHOWHUD)
 	{
-		new szName[32]
 		get_user_name(iPlayer, szName, charsmax(szName))
 
-		if (get_pcvar_num(g_pCvarHudInfoMode) == 1)
+		switch (iHudInfoMode) 
 		{
-			set_hudmessage(get_pcvar_num(g_pCvarSpecInfoColors[Red]), get_pcvar_num(g_pCvarSpecInfoColors[Green]), get_pcvar_num(g_pCvarSpecInfoColors[Blue]), HUD_SPECT_X, HUD_SPECT_Y, 0, 1.2, 1.1, 0.5, 0.6, -1)
-			
-			if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
+			case 1: // HUD
 			{
-				new szHealth[15]
-				AddCommas(get_user_health(iPlayer), szHealth, charsmax(szHealth))
+				set_hudmessage(get_pcvar_num(g_pCvarSpecInfoColors[Red]), get_pcvar_num(g_pCvarSpecInfoColors[Green]), get_pcvar_num(g_pCvarSpecInfoColors[Blue]), HUD_SPECT_X, HUD_SPECT_Y, 0, 1.2, 1.1, 0.5, 0.6, -1)
 				
-				if (ze_is_user_zombie(iPlayer))
+				if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
 				{
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "ZOMBIE_SPEC_COMMAS", szName, szHealth, ze_get_escape_coins(iPlayer))
-				}
-				else if ((iPlayer == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
-				{
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_SPEC_COMMAS_LEADER", szName, szHealth, ze_get_escape_coins(iPlayer))
-				}
-				else
-				{
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_SPEC_COMMAS", szName, szHealth, ze_get_escape_coins(iPlayer))
-				}
-			}
-			else
-			{
-				if (ze_is_user_zombie(iPlayer))
-				{
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "ZOMBIE_SPEC", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
-				}
-				else if ((iPlayer == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
-				{
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_SPEC_LEADER", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					AddCommas(get_user_health(iPlayer), szHealth, charsmax(szHealth))
+					
+					if (ze_is_user_zombie(iPlayer))
+					{
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "ZOMBIE_SPEC_COMMAS", szName, szHealth, ze_get_escape_coins(iPlayer))
+					}
+					else if ((iPlayer == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
+					{
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_SPEC_COMMAS_LEADER", szName, szHealth, ze_get_escape_coins(iPlayer))
+					}
+					else
+					{
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_SPEC_COMMAS", szName, szHealth, ze_get_escape_coins(iPlayer))
+					}
 				}
 				else
 				{
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_SPEC", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					if (ze_is_user_zombie(iPlayer))
+					{
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "ZOMBIE_SPEC", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					}
+					else if ((iPlayer == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
+					{
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_SPEC_LEADER", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					}
+					else
+					{
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_SPEC", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					}
 				}
 			}
-		}
-		else if (get_pcvar_num(g_pCvarHudInfoMode) == 2)
-		{
-			set_dhudmessage(get_pcvar_num(g_pCvarSpecInfoColors[Red]), get_pcvar_num(g_pCvarSpecInfoColors[Green]), get_pcvar_num(g_pCvarSpecInfoColors[Blue]), HUD_SPECT_X, HUD_SPECT_Y, 0, 1.2, 1.1, 0.5, 0.6)
-			
-			if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
+			case 2: // DHUD
 			{
-				new szHealth[15]
-				AddCommas(get_user_health(iPlayer), szHealth, charsmax(szHealth))
+				set_dhudmessage(get_pcvar_num(g_pCvarSpecInfoColors[Red]), get_pcvar_num(g_pCvarSpecInfoColors[Green]), get_pcvar_num(g_pCvarSpecInfoColors[Blue]), HUD_SPECT_X, HUD_SPECT_Y, 0, 1.2, 1.1, 0.5, 0.6)
 				
-				if (ze_is_user_zombie(iPlayer))
+				if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
 				{
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "ZOMBIE_SPEC_COMMAS", szName, szHealth, ze_get_escape_coins(iPlayer))
-				}
-				else if ((iPlayer == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
-				{
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_SPEC_COMMAS_LEADER", szName, szHealth, ze_get_escape_coins(iPlayer))
-				}
-				else
-				{
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_SPEC_COMMAS", szName, szHealth, ze_get_escape_coins(iPlayer))
-				}
-			}
-			else
-			{
-				if (ze_is_user_zombie(iPlayer))
-				{
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "ZOMBIE_SPEC", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
-				}
-				else if ((iPlayer == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
-				{
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_SPEC_LEADER", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					AddCommas(get_user_health(iPlayer), szHealth, charsmax(szHealth))
+					
+					if (ze_is_user_zombie(iPlayer))
+					{
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "ZOMBIE_SPEC_COMMAS", szName, szHealth, ze_get_escape_coins(iPlayer))
+					}
+					else if ((iPlayer == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
+					{
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_SPEC_COMMAS_LEADER", szName, szHealth, ze_get_escape_coins(iPlayer))
+					}
+					else
+					{
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_SPEC_COMMAS", szName, szHealth, ze_get_escape_coins(iPlayer))
+					}
 				}
 				else
 				{
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_SPEC", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					if (ze_is_user_zombie(iPlayer))
+					{
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "ZOMBIE_SPEC", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					}
+					else if ((iPlayer == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
+					{
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_SPEC_LEADER", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					}
+					else
+					{
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_SPEC", szName, get_user_health(iPlayer), ze_get_escape_coins(iPlayer))
+					}
 				}
 			}
 		}
 	}
 	else if (ze_is_user_zombie(iPlayer))
 	{
-		if (get_pcvar_num(g_pCvarHudInfoMode) == 1)
+		switch (iHudInfoMode)
 		{
-			set_hudmessage(get_pcvar_num(g_pCvarZombieInfoColors[Red]), get_pcvar_num(g_pCvarZombieInfoColors[Green]), get_pcvar_num(g_pCvarZombieInfoColors[Blue]), HUD_STATS_X, HUD_STATS_Y, 0, 1.2, 1.1, 0.5, 0.6, -1)
-			
-			if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
+			case 1: // HUD
 			{
-				new szHealth[15]
-				AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
-
-				ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "ZOMBIE_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
-			}
-			else
-			{
-				ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "ZOMBIE", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
-			}
-		}
-		else if (get_pcvar_num(g_pCvarHudInfoMode) == 2)
-		{
-			set_dhudmessage(get_pcvar_num(g_pCvarZombieInfoColors[Red]), get_pcvar_num(g_pCvarZombieInfoColors[Green]), get_pcvar_num(g_pCvarZombieInfoColors[Blue]), HUD_STATS_X, HUD_STATS_Y, 0, 1.2, 1.1, 0.5, 0.6)
-			
-			if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
-			{
-				new szHealth[15]
-				AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
+				set_hudmessage(get_pcvar_num(g_pCvarZombieInfoColors[Red]), get_pcvar_num(g_pCvarZombieInfoColors[Green]), get_pcvar_num(g_pCvarZombieInfoColors[Blue]), HUD_STATS_X, HUD_STATS_Y, 0, 1.2, 1.1, 0.5, 0.6, -1)
 				
-				show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "ZOMBIE_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
+				if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
+				{
+					AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
+
+					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "ZOMBIE_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
+				}
+				else
+				{
+					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "ZOMBIE", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
+				}
 			}
-			else
+			case 2: // DHUD
 			{
-				show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "ZOMBIE", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))	
+				set_dhudmessage(get_pcvar_num(g_pCvarZombieInfoColors[Red]), get_pcvar_num(g_pCvarZombieInfoColors[Green]), get_pcvar_num(g_pCvarZombieInfoColors[Blue]), HUD_STATS_X, HUD_STATS_Y, 0, 1.2, 1.1, 0.5, 0.6)
+				
+				if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
+				{
+					AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
+					
+					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "ZOMBIE_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
+				}
+				else
+				{
+					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "ZOMBIE", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))	
+				}
 			}
 		}
 	}
 	else
 	{
-		if (get_pcvar_num(g_pCvarHudInfoMode) == 1)
+		switch (iHudInfoMode)
 		{
-			set_hudmessage(get_pcvar_num(g_pCvarHumanInfoColors[Red]), get_pcvar_num(g_pCvarHumanInfoColors[Green]), get_pcvar_num(g_pCvarHumanInfoColors[Blue]), HUD_STATS_X, HUD_STATS_Y, 0, 1.2, 1.1, 0.5, 0.6, -1)
-			
-			if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
+			case 1: // HUD
 			{
-				if ((ID_SHOWHUD == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
-				{
-					new szHealth[15]
-					AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
+				set_hudmessage(get_pcvar_num(g_pCvarHumanInfoColors[Red]), get_pcvar_num(g_pCvarHumanInfoColors[Green]), get_pcvar_num(g_pCvarHumanInfoColors[Blue]), HUD_STATS_X, HUD_STATS_Y, 0, 1.2, 1.1, 0.5, 0.6, -1)
 				
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_LEADER_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
+				if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
+				{
+					if ((ID_SHOWHUD == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
+					{
+						AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
+					
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_LEADER_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
+					}
+					else
+					{
+						AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
+					
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
+					}					
 				}
 				else
 				{
-					new szHealth[15]
-					AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
-				
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
-				}					
+					if ((ID_SHOWHUD == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
+					{
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_LEADER", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
+					}
+					else
+					{
+						ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
+					}					
+				}
 			}
-			else
+			case 2: // DHUD
 			{
-				if ((ID_SHOWHUD == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
+				set_dhudmessage(get_pcvar_num(g_pCvarHumanInfoColors[Red]), get_pcvar_num(g_pCvarHumanInfoColors[Green]), get_pcvar_num(g_pCvarHumanInfoColors[Blue]), HUD_STATS_X, HUD_STATS_Y, 0, 1.2, 1.1, 0.5, 0.6)
+				
+				if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
 				{
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN_LEADER", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
+					if ((ID_SHOWHUD == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
+					{
+						AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
+					
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_LEADER_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
+					}
+					else
+					{
+						AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
+					
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
+					}
 				}
 				else
 				{
-					ShowSyncHudMsg(ID_SHOWHUD, g_iMsgSync, "%L", LANG_PLAYER, "HUMAN", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
-				}					
-			}
-		}
-		else if (get_pcvar_num(g_pCvarHudInfoMode) == 2)
-		{
-			set_dhudmessage(get_pcvar_num(g_pCvarHumanInfoColors[Red]), get_pcvar_num(g_pCvarHumanInfoColors[Green]), get_pcvar_num(g_pCvarHumanInfoColors[Blue]), HUD_STATS_X, HUD_STATS_Y, 0, 1.2, 1.1, 0.5, 0.6)
-			
-			if (get_pcvar_num(g_pCvarHudInfoComma) == 1)
-			{
-				if ((ID_SHOWHUD == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
-				{
-					new szHealth[15]
-					AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
-				
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_LEADER_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
+					if ((ID_SHOWHUD == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
+					{
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_LEADER", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
+					}
+					else
+					{
+						show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
+					}
 				}
-				else
-				{
-					new szHealth[15]
-					AddCommas(get_user_health(ID_SHOWHUD), szHealth, charsmax(szHealth))
-				
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_COMMAS", szHealth, ze_get_escape_coins(ID_SHOWHUD))
-				}
-			}
-			else
-			{
-				if ((ID_SHOWHUD == ze_get_escape_leader_id()) && (0 < get_pcvar_num(g_pCvarRankEnabled) <= 2))
-				{
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN_LEADER", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
-				}
-				else
-				{
-					show_dhudmessage(ID_SHOWHUD, "%L", LANG_PLAYER, "HUMAN", get_user_health(ID_SHOWHUD), ze_get_escape_coins(ID_SHOWHUD))
-				}
-			}
+			}			
 		}
 	}
+}
+
+/**
+ * Natives.
+ */
+public native_show_user_hud_info(id)
+{
+	// Player not found?
+	if (!is_user_connected(id))
+	{
+		// Print error in server console.
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false
+	}
+
+	if (!task_exists(id+TASK_SHOWHUD))
+	{
+		set_task(1.0, "ShowHUD", id+TASK_SHOWHUD, _, _, "b")
+	}
+
+	return true
+}
+
+public native_hide_user_hud_info(id)
+{
+	// Player not found?
+	if (!is_user_connected(id))
+	{
+		// Print error in server console.
+		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		return false
+	}	
+
+	// Stop appear HUDs.
+	ClearSyncHud(id, g_iMsgSync)
+	remove_task(id+TASK_SHOWHUD)
+	return true
 }
