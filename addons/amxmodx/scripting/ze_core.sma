@@ -682,7 +682,8 @@ public client_disconnected(id)
 	g_bIsGravityUsed[id] = false
 	g_flUserKnockback[id] = 0.0
 	g_iUserGravity[id] = 0
-
+	
+	new szAuthId[35]
 	get_user_authid(id, szAuthId, charsmax(szAuthId))
 
 	// remove choosen player from trie if he exist in and disconnect
