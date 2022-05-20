@@ -682,7 +682,13 @@ public client_disconnected(id)
 	g_bIsGravityUsed[id] = false
 	g_flUserKnockback[id] = 0.0
 	g_iUserGravity[id] = 0
-	
+
+	get_user_authid(id, szAuthId, charsmax(szAuthId))
+
+	// remove choosen player from trie if he exist in and disconnect
+	if (TrieKeyExists(g_tChosenPlayers, szAuthId))
+		TrieDeleteKey(g_tChosenPlayers, szAuthId)
+
 	remove_task(id)
 	
 	// Execute our disconnected forward
