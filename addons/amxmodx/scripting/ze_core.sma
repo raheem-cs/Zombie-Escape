@@ -457,7 +457,11 @@ public Choose_Zombies()
 		
 		// Get authid (SteamID) of the player.
 		get_user_authid(id, szAuthId, charsmax(szAuthId))
-
+		
+		// Prevent infinity loop if player disconnect and remeaining g_tChosenPlayers players in new round
+		if (iAliveCount <= iReqZombies && TrieKeyExists(g_tChosenPlayers, szAuthId))
+			TrieDeleteKey(g_tChosenPlayers, szAuthId)
+		
 		// Check if CVAR enabled and if player in the Trie, it means he chosen previous round so skip him this round
 		if (bSmartRandom && TrieKeyExists(g_tChosenPlayers, szAuthId))
 			continue
