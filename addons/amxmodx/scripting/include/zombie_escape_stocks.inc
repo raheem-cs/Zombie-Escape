@@ -231,14 +231,15 @@ stock Set_Knockback(ent, Float:VicOrigin[3], Float:speed, type)
 // Update Player Frags and Deaths
 stock UpdateFrags(iAttacker, iVictim, iFrags, iDeaths, iScoreboard)
 {
-	if (!is_user_connected(iAttacker) || !is_user_connected(iVictim))
+	if (!is_user_connected(iAttacker) || !is_user_connected(iVictim) && iVictim != 0)
 		return
 	
 	// Set attacker frags
 	set_entvar(iAttacker, var_frags, float(pev(iAttacker, pev_frags) + iFrags))
 	
 	// Set victim deaths
-	set_member(iVictim, m_iDeaths, get_member(iVictim, m_iDeaths) + iDeaths)
+	if(iVictim != 0)
+		set_member(iVictim, m_iDeaths, get_member(iVictim, m_iDeaths) + iDeaths)
 	
 	// Update scoreboard with attacker and victim info
 	if (iScoreboard)
@@ -251,13 +252,16 @@ stock UpdateFrags(iAttacker, iVictim, iFrags, iDeaths, iScoreboard)
 		write_short(get_member(iAttacker, m_iTeam)) // team
 		message_end()
 		
-		message_begin(MSG_BROADCAST, get_user_msgid("ScoreInfo"))
-		write_byte(iVictim) // id
-		write_short(floatround(get_entvar(iVictim, var_frags))) // frags
-		write_short(get_member(iVictim, m_iDeaths)) // deaths
-		write_short(0) // class?
-		write_short(get_member(iVictim, m_iTeam)) // team
-		message_end()
+		if(iVictim != 0)
+		{
+			message_begin(MSG_BROADCAST, get_user_msgid("ScoreInfo"))
+			write_byte(iVictim) // id
+			write_short(floatround(get_entvar(iVictim, var_frags))) // frags
+			write_short(get_member(iVictim, m_iDeaths)) // deaths
+			write_short(0) // class?
+			write_short(get_member(iVictim, m_iTeam)) // team
+			message_end()
+		}
 	}
 }
 
