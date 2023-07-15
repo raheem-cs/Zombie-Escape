@@ -39,14 +39,13 @@ public plugin_init()
 	// Load Plug-In
 	register_plugin("[ZE] Blocked Messages & Events", ZE_VERSION, AUTHORS)
 	
+	// Hook Chain.
+	RegisterHookChain(RG_CBasePlayer_HasRestrictItem, "fw_HasRestrictItem_Pre")
+
 	// Block some messages
 	register_message(get_user_msgid("TextMsg"), "fw_TextMsg_Message")
 	register_message(get_user_msgid("SendAudio"), "fw_SendAudio_Message")
 	register_message(get_user_msgid("HideWeapon"), "fw_HideWeapon_Message")
-	
-	// Hams
-	RegisterHam(Ham_Touch, "weaponbox", "Fw_TouchWeaponBox_Pre", 0)
-	RegisterHam(Ham_Touch, "armoury_entity", "Fw_TouchWeaponBox_Pre", 0)
 	
 	// Cvars
 	bind_pcvar_num(register_cvar("ze_block_kill", "1"), g_bBlockKillCmd)
@@ -65,7 +64,7 @@ public plugin_cfg()
 	set_member_game(m_bMapHasBuyZone, false)
 }
 
-public fw_TextMsg_Message()
+public fw_TextMsg_Message(iMsgID, iDest, iReceiver)
 {
 	new szMsg[22]
 	get_msg_arg_string(2, szMsg, charsmax(szMsg))
@@ -80,7 +79,7 @@ public fw_TextMsg_Message()
 	return PLUGIN_CONTINUE
 }
 
-public fw_SendAudio_Message()
+public fw_SendAudio_Message(iMsgID, iDest, iReceiver)
 {
 	new szAudio[17]
 	get_msg_arg_string(2, szAudio, charsmax(szAudio))
@@ -89,16 +88,13 @@ public fw_SendAudio_Message()
 	for (new i = 0; i < sizeof(g_szAudioMessages); i++)
 	{
 		if (equal(szAudio[7], g_szAudioMessages[i]))
-		{
-			server_print(szAudio[7])
 			return PLUGIN_HANDLED
-		}
 	}
 	
 	return PLUGIN_CONTINUE
 }
 
-public fw_HideWeapon_Message(Index, Dest, iEnt)
+public fw_HideWeapon_Message(iMsgID, iDest, iReceiver)
 {
 	new iFlags
 
@@ -156,14 +152,19 @@ public pfn_spawn(iEnt)
 	return PLUGIN_CONTINUE
 }
 
-public Fw_TouchWeaponBox_Pre(iWeaponBox, iIndex)
+public fw_HasRestrictItem_Pre(id, ItemID:iItemID)
 {
-	if (!is_user_alive(iIndex))
-		return HAM_IGNORED
-	
-	// Block Zombies From Pick UP Weapons
-	if (ze_is_user_zombie(iIndex))
-		return HAM_SUPERCEDE
-	
-	return HAM_IGNORED
+	// Is not Alive?
+	if (!is_user_alive(id))
+		return;
+
+	// Player not Human!
+	if (!ze_is_user_zombie(id))
+		return;
+
+	if (iItemID != ITEM_KNIFE)
+	{
+		// Prevent pick up Weapon.
+		SetHookChainReturn(ATYPE_BOOL, true)
+	}
 }
