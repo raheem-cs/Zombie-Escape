@@ -1,5 +1,25 @@
 #include <zombie_escape>
 
+// Macro
+#define FIsFakeClient(%0) bool:((g_iIsFakeClient & BIT(%0)) ? 1 : 0)
+
+// Save Type
+enum (+=1)
+{
+	Save_NOT = -1,
+	Save_nVault,
+	Save_MySQL
+}
+
+// Database
+enum _:SQL_DATA
+{
+	SQL_HOST[64] = 0,
+	SQL_USER[32],
+	SQL_PASS[32],
+	SQL_DB[128]
+}
+
 // Static (Change it if you need)
 new const g_szVaultName[] = "Escape_Coins"
 new const g_szLogFile[] = "Escape-Coins.log" // MySQL Errors log file
@@ -9,44 +29,35 @@ new const g_szTable[] =
 " \
 	CREATE TABLE IF NOT EXISTS `zombie_escape` \
 	( \
-		`SteamID` varchar(34) NOT NULL, \
-		`EC` int(16) NOT NULL, \
+		`SteamID` varchar(64) NOT NULL, \
+		`EC` int(32) NOT NULL, \
 		PRIMARY KEY (`SteamID`) \
 	); \
 "
 
 // Variables
-new g_iMaxClients,
-	g_iVaultHandle,
-	g_iEscapeCoins[33], 
-	Float:g_flDamage[33],
+new g_iVaultHandle,
+	g_iIsFakeClient,
+	g_iEscapeCoins[MAX_PLAYERS+1], 
+	Float:g_flDamage[MAX_PLAYERS+1],
 	Handle:g_hTuple
 
 // Cvars
-new g_pCvarEscapeSuccess, 
-	g_pCvarHumanInfected, 
-	g_pCvarDamage, 
-	g_pCvarDamageCoins, 
-	g_pCvarStartCoins, 
-	g_pCvarMaxCoins,
-	g_pCvarEarnChatNotice,
-	g_pCvarSaveType,
-	g_pCvarDBInfo[4]
-
-// Database
-enum
-{
-	Host = 0,
-	User,
-	Pass,
-	DB
-}
+new g_iSaveType,
+	g_iMaxCoins,
+	g_iStartCoins, 
+	g_iDamageCoins, 
+	g_iEscapeSuccess, 
+	g_iHumanInfected, 
+	bool:g_bEarnChatNotice,
+	Float:g_flRequiredDamage, 
+	g_szDBInfo[SQL_DATA]
 
 // Natives
 public plugin_natives()
 {
-	register_native("ze_get_escape_coins", "native_ze_get_escape_coins", 1)
-	register_native("ze_set_escape_coins", "native_ze_set_escape_coins", 1)
+	register_native("ze_get_escape_coins", "native_ze_get_escape_coins")
+	register_native("ze_set_escape_coins", "native_ze_set_escape_coins")
 }
 
 public plugin_init()
@@ -54,35 +65,39 @@ public plugin_init()
 	register_plugin("[ZE] Escape Coins System", ZE_VERSION, AUTHORS)
 	
 	// Hook Chains
-	RegisterHookChain(RG_CBasePlayer_TakeDamage, "Fw_TakeDamage_Post", 1)
+	RegisterHookChain(RG_CBasePlayer_TakeDamage, "fw_TakeDamage_Post", 1)
 	
 	// Commands
-	register_clcmd("say /EC", "Coins_Info")
-	register_clcmd("say_team /EC", "Coins_Info")
-	
-	// Static Values
-	g_iMaxClients = get_member_game(m_nMaxPlayers)
+	register_clcmd("say /EC", "cmd_CoinsInfo")
+	register_clcmd("say_team /EC", "cmd_CoinsInfo")
 	
 	// Cvars
-	g_pCvarSaveType = register_cvar("ze_coins_save_type", "0")
-	g_pCvarEscapeSuccess = register_cvar("ze_escape_success_coins", "15")
-	g_pCvarHumanInfected = register_cvar("ze_human_infected_coins", "5")
-	g_pCvarDamage = register_cvar("ze_damage_required", "300")
-	g_pCvarDamageCoins = register_cvar("ze_damage_coins", "4")
-	g_pCvarStartCoins = register_cvar("ze_start_coins", "50")
-	g_pCvarMaxCoins = register_cvar("ze_max_coins", "200000")
-	g_pCvarEarnChatNotice = register_cvar("ze_earn_chat_notice", "1")
+	bind_pcvar_num(register_cvar("ze_coins_save_type", "0"), g_iSaveType)
+	bind_pcvar_num(register_cvar("ze_escape_success_coins", "15"), g_iEscapeSuccess)
+	bind_pcvar_num(register_cvar("ze_human_infected_coins", "5"), g_iHumanInfected)
+	bind_pcvar_num(register_cvar("ze_damage_coins", "4"), g_iDamageCoins)
+	bind_pcvar_num(register_cvar("ze_start_coins", "50"), g_iStartCoins)
+	bind_pcvar_num(register_cvar("ze_max_coins", "200000"), g_iMaxCoins)
+	bind_pcvar_num(register_cvar("ze_earn_chat_notice", "1"), g_bEarnChatNotice)
+	bind_pcvar_float(register_cvar("ze_damage_required", "300.0"), g_flRequiredDamage)
 	
-	g_pCvarDBInfo[Host] = register_cvar("ze_ec_host", "localhost")
-	g_pCvarDBInfo[User] = register_cvar("ze_ec_user", "user")
-	g_pCvarDBInfo[Pass] = register_cvar("ze_ec_pass", "pass")
-	g_pCvarDBInfo[DB] = register_cvar("ze_ec_dbname", "dbname")
+	bind_pcvar_string(register_cvar("ze_ec_host", "localhost"), g_szDBInfo[SQL_HOST], charsmax(g_szDBInfo) - SQL_HOST)
+	bind_pcvar_string(register_cvar("ze_ec_user", "user"), g_szDBInfo[SQL_USER], charsmax(g_szDBInfo) - SQL_USER)
+	bind_pcvar_string(register_cvar("ze_ec_pass", "pass"), g_szDBInfo[SQL_PASS], charsmax(g_szDBInfo) - SQL_PASS)
+	bind_pcvar_string(register_cvar("ze_ec_dbname", "dbname"), g_szDBInfo[SQL_DB], charsmax(g_szDBInfo) - SQL_DB)
 	
 	// Initialize MySQL - Delay 0.1 second required so we make sure that our zombie_escape.cfg already executed and cvars values loaded from it
 	set_task(0.1, "Delay_MySQL_Init")
 }
 
-public Coins_Info(id)
+public plugin_end()
+{
+	// Free SQL handle.
+	if (g_hTuple != Empty_Handle)
+		SQL_FreeHandle(g_hTuple)
+}
+
+public cmd_CoinsInfo(const id)
 {
 	ze_colored_print(id, "%L", LANG_PLAYER, "COINS_INFO", g_iEscapeCoins[id])
 }
@@ -94,17 +109,10 @@ public Delay_MySQL_Init()
 
 public MySQL_Init()
 {
-	if (!get_pcvar_num(g_pCvarSaveType))
-		return
+	if (g_iSaveType != Save_MySQL)
+		return;
 	
-	new szHost[64], szUser[32], szPass[32], szDB[128]
-	
-	get_pcvar_string(g_pCvarDBInfo[Host], szHost, charsmax(szHost))
-	get_pcvar_string(g_pCvarDBInfo[User], szUser, charsmax(szUser))
-	get_pcvar_string(g_pCvarDBInfo[Pass], szPass, charsmax(szPass))
-	get_pcvar_string(g_pCvarDBInfo[DB], szDB, charsmax(szDB))
-	
-	g_hTuple = SQL_MakeDbTuple(szHost, szUser, szPass, szDB)
+	g_hTuple = SQL_MakeDbTuple(g_szDBInfo[SQL_HOST], g_szDBInfo[SQL_USER], g_szDBInfo[SQL_PASS], g_szDBInfo[SQL_DB])
 	
 	// Let's ensure that the g_hTuple will be valid, we will access the database to make sure
 	new iErrorCode, szError[512], Handle:hSQLConnection
@@ -113,7 +121,7 @@ public MySQL_Init()
 	
 	if(hSQLConnection != Empty_Handle)
 	{
-		log_amx("[MySQL] Successfully connected to host: %s (ALL IS OK).", szHost)
+		log_amx("[MySQL] Successfully connected to host: %s (ALL IS OK).", g_szDBInfo[SQL_HOST])
 		SQL_FreeHandle(hSQLConnection)
 	}
 	else
@@ -134,24 +142,69 @@ public QueryCreateTable(iFailState, Handle:hQuery, szError[], iError, szData[], 
 public client_putinserver(id)
 {
 	if (is_user_bot(id) || is_user_hltv(id))
-		return
-	
-	// Just 1 second delay
-	set_task(1.0, "DelayLoad", id)
-}
+	{
+		g_iIsFakeClient |= BIT(id)
+		return;
+	}
 
-public DelayLoad(id)
-{
+	// Load player Coins.
 	LoadCoins(id)
 }
 
-public plugin_end()
+public client_disconnected(id, bool:drop, message[], maxlen)
 {
-	if (get_pcvar_num(g_pCvarSaveType))
+	// Fake Client!
+	if (FIsFakeClient(id))
 	{
-		if (g_hTuple != Empty_Handle)
+		g_iIsFakeClient &= ~BIT(id)
+		return;
+	}
+
+	// Save player Coins.
+	SaveCoins(id)
+
+	// Reset variables.
+	g_iEscapeCoins[id] = 0
+	g_flDamage[id] = 0.0
+}
+
+public ze_user_infected(iVictim, iInfector)
+{
+	if (iInfector == 0) // Server ID
+		return
+
+	g_iEscapeCoins[iInfector] += g_iHumanInfected
+
+	if (g_bEarnChatNotice)
+	{
+		ze_colored_print(iInfector, "%L", LANG_PLAYER, "HUMAN_INFECTED_COINS", g_iHumanInfected)
+	}
+}
+
+public fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:fDamage, bitsDamageType)
+{
+	// Player not in game or Damage himself
+	if (iVictim == iAttacker || !is_user_connected(iVictim) || !is_user_connected(iAttacker))
+		return;
+	
+	// Attacker is Zombie
+	if (ze_is_user_zombie(iAttacker))
+		return;
+	
+	// Two Players From one Team
+	if (get_user_team(iVictim) == get_user_team(iAttacker))
+		return;
+
+	if (g_iDamageCoins > 0)
+	{
+		// Store Damage For every Player
+		g_flDamage[iAttacker] += fDamage
+		
+		// Damage Calculator Equal or Higher than needed damage
+		while (g_flDamage[iAttacker] >= g_flRequiredDamage)
 		{
-			SQL_FreeHandle(g_hTuple)
+			g_iEscapeCoins[iAttacker] += g_iDamageCoins
+			g_flDamage[iAttacker] -= g_flRequiredDamage
 		}
 	}
 }
@@ -160,112 +213,66 @@ public ze_roundend(WinTeam)
 {
 	if (WinTeam == ZE_TEAM_HUMAN)
 	{
-		for(new id = 1; id <= g_iMaxClients; id++)
+		new iPlayers[MAX_PLAYERS], iAliveNum, id
+
+		// Get index of all alive players.
+		get_players(iPlayers, iAliveNum, "a")
+
+		for(new i = 0; i < iAliveNum; i++)
 		{
-			g_flDamage[id] = 0.0
+			// Get client index.
+			id = iPlayers[i]
 			
-			if (!is_user_alive(id) || ze_is_user_zombie(id))
-				continue
+			if (ze_is_user_zombie(id))
+				continue;
 			
-			g_iEscapeCoins[id] += get_pcvar_num(g_pCvarEscapeSuccess)
+			g_iEscapeCoins[id] += g_iEscapeSuccess
 			
-			SaveCoins(id)
-			
-			if (get_pcvar_num(g_pCvarEarnChatNotice))
+			if (g_bEarnChatNotice)
 			{
-				ze_colored_print(id, "%L", LANG_PLAYER, "ESCAPE_SUCCESS_COINS", get_pcvar_num(g_pCvarEscapeSuccess))
+				ze_colored_print(id, "%L", LANG_PLAYER, "ESCAPE_SUCCESS_COINS", g_iEscapeSuccess)
 			}
 		}
 	}
 }
 
-public ze_user_infected(iVictim, iInfector)
+/**
+ * ===[ Functions ]===
+ */
+LoadCoins(const id)
 {
-	if (iInfector == 0) // Server ID
-		return
-
-	g_iEscapeCoins[iInfector] += get_pcvar_num(g_pCvarHumanInfected)
-	
-	SaveCoins(iInfector)
-	
-	if (get_pcvar_num(g_pCvarEarnChatNotice))
-	{
-		ze_colored_print(iInfector, "%L", LANG_PLAYER, "HUMAN_INFECTED_COINS", get_pcvar_num(g_pCvarHumanInfected))
-	}
-}
-
-public Fw_TakeDamage_Post(iVictim, iInflictor, iAttacker, Float:fDamage, bitsDamageType)
-{
-	// Player Damage Himself
-	if (iVictim == iAttacker)
-		return HC_CONTINUE
-	
-	// Two Players From one Team
-	if (get_member(iAttacker, m_iTeam) == get_member(iVictim, m_iTeam))
-		return HC_CONTINUE
-	
-	// iVictim or iAttacker Not Alive
-	if (!is_user_alive(iVictim) || !is_user_alive(iAttacker))
-		return HC_CONTINUE
-	
-	// Attacker is Zombie
-	if (get_member(iAttacker, m_iTeam) == TEAM_TERRORIST)
-		return HC_CONTINUE
-	
-	// Store Damage For every Player
-	g_flDamage[iAttacker] += fDamage
-	
-	// Damage Calculator Equal or Higher than needed damage
-	while (g_flDamage[iAttacker] >= get_pcvar_float(g_pCvarDamage))
-	{
-		g_iEscapeCoins[iAttacker] += (get_pcvar_num(g_pCvarDamageCoins))
-		g_flDamage[iAttacker] -= get_pcvar_float(g_pCvarDamage)
-	}
-		
-	SaveCoins(iAttacker)
-
-	return HC_CONTINUE
-}
-
-LoadCoins(id)
-{
-	new szAuthID[35]
+	new szAuthID[MAX_AUTHID_LENGTH]
 	get_user_authid(id, szAuthID, charsmax(szAuthID))
 	
-	if (!get_pcvar_num(g_pCvarSaveType))
+	switch (g_iSaveType)
 	{
-		// Open the Vault
-		g_iVaultHandle = nvault_open(g_szVaultName)
-		
-		// Get coins
-		new szCoins[16], iExists, iTimestamp;
-		iExists = nvault_lookup(g_iVaultHandle, szAuthID, szCoins, charsmax(szCoins), iTimestamp);
-		
-		// Close Vault
-		nvault_close(g_iVaultHandle)
-		
-		if (!iExists)
+		case Save_nVault:
 		{
-			// Player exist? Load start value then save
-			g_iEscapeCoins[id] = get_pcvar_num(g_pCvarStartCoins)
-			SaveCoins(id)
+			// Open the Vault
+			g_iVaultHandle = nvault_open(g_szVaultName)
+			
+			// Error in opening Vault.
+			if (g_iVaultHandle == INVALID_HANDLE)
+				set_fail_state("Error in opening the nVault!")
+
+			// Get coins from Vault
+			g_iEscapeCoins[id] = nvault_get(g_iVaultHandle, szAuthID)
+
+			// Close the Vault
+			nvault_close(g_iVaultHandle)
 		}
-		else
+		case Save_MySQL:
 		{
-			g_iEscapeCoins[id] = str_to_num(szCoins)
+			new szQuery[128], szData[5]
+			formatex(szQuery, charsmax(szQuery), "SELECT `EC` FROM `zombie_escape` WHERE ( `SteamID` = '%s' );", szAuthID)
+
+			num_to_str(id, szData, charsmax(szData))
+			SQL_ThreadQuery(g_hTuple, "@QuerySelectData", szQuery, szData, charsmax(szData))
 		}
-	}
-	else
-	{
-		new szQuery[128], szData[5]
-		formatex(szQuery, charsmax(szQuery), "SELECT `EC` FROM `zombie_escape` WHERE ( `SteamID` = '%s' );", szAuthID)
-     
-		num_to_str(id, szData, charsmax(szData))
-		SQL_ThreadQuery(g_hTuple, "QuerySelectData", szQuery, szData, charsmax(szData))
 	}
 }
 
-public QuerySelectData(iFailState, Handle:hQuery, szError[], iError, szData[]) 
+@QuerySelectData(iFailState, Handle:hQuery, szError[], iError, szData[]) 
 {
 	if(SQL_IsFail(iFailState, iError, szError, g_szLogFile))
 		return
@@ -276,19 +283,17 @@ public QuerySelectData(iFailState, Handle:hQuery, szError[], iError, szData[])
 	if(!SQL_NumResults(hQuery))
 	{
 		// This is new player
-		g_iEscapeCoins[id] = get_pcvar_num(g_pCvarStartCoins)
+		g_iEscapeCoins[id] = g_iStartCoins
 		
 		// Get user steamid
-		new szAuthID[35]
+		new szAuthID[MAX_AUTHID_LENGTH]
 		get_user_authid(id, szAuthID, charsmax(szAuthID))
 		
 		// Insert his data to our database
 		new szQuery[128]
-		
 		formatex(szQuery, charsmax(szQuery), "INSERT INTO `zombie_escape` (`SteamID`, `EC`) VALUES ('%s', '%d');", szAuthID, g_iEscapeCoins[id])
-		SQL_ThreadQuery(g_hTuple, "QueryInsertData", szQuery)
-		
-		return
+		SQL_ThreadQuery(g_hTuple, "@QueryInsertData", szQuery)
+		return;
 	}
 	
 	// Get the "EC" column number (It's 2, always i don't like to hardcode :p)
@@ -298,72 +303,78 @@ public QuerySelectData(iFailState, Handle:hQuery, szError[], iError, szData[])
 	g_iEscapeCoins[id] = SQL_ReadResult(hQuery, iEC_Column)
 }
 
-public QueryInsertData(iFailState, Handle:hQuery, szError[], iError, szData[], iSize, Float:flQueueTime)
+@QueryInsertData(iFailState, Handle:hQuery, szError[], iError, szData[], iSize, Float:flQueueTime)
 {
 	SQL_IsFail(iFailState, iError, szError, g_szLogFile)
 }
 
 SaveCoins(id)
 {
-	new szAuthID[35], iMaxValue
-	iMaxValue = get_pcvar_num(g_pCvarMaxCoins)
+	new szAuthID[MAX_AUTHID_LENGTH]
 	get_user_authid(id, szAuthID, charsmax(szAuthID))
 	
 	// Set Him to max if he Higher than Max Value
-	if (g_iEscapeCoins[id] > iMaxValue)
-	{
-		g_iEscapeCoins[id] = iMaxValue
-	}
+	if (g_iEscapeCoins[id] > g_iMaxCoins)
+		g_iEscapeCoins[id] = g_iMaxCoins
 
-	new szData[16]
+	new szData[32]
 	num_to_str(g_iEscapeCoins[id], szData, charsmax(szData))
 
-	if (!get_pcvar_num(g_pCvarSaveType))
+	switch (g_iSaveType)
 	{
-		// Open the Vault
-		g_iVaultHandle = nvault_open(g_szVaultName)
+		case Save_nVault:
+		{
+			// Open the Vault
+			g_iVaultHandle = nvault_open(g_szVaultName)
 
-		// Save His SteamID, Escape Coins
-		nvault_set(g_iVaultHandle, szAuthID, szData)
-		
-		// Close Vault
-		nvault_close(g_iVaultHandle)
-	}
-	else
-	{
-		new szQuery[128]
-		formatex(szQuery, charsmax(szQuery), "UPDATE `zombie_escape` SET `EC` = '%d' WHERE `SteamID` = '%s';", g_iEscapeCoins[id], szAuthID)
-		SQL_ThreadQuery(g_hTuple, "QueryUpdateData", szQuery)
+			// Save His SteamID, Escape Coins
+			nvault_pset(g_iVaultHandle, szAuthID, szData)
+			
+			// Close Vault
+			nvault_close(g_iVaultHandle)
+		}
+		case Save_MySQL:
+		{
+			new szQuery[128]
+			formatex(szQuery, charsmax(szQuery), "UPDATE `zombie_escape` SET `EC` = '%d' WHERE `SteamID` = '%s';", g_iEscapeCoins[id], szAuthID)
+			SQL_ThreadQuery(g_hTuple, "@QueryUpdateData", szQuery)
+		}
 	}
 }
 
-public QueryUpdateData(iFailState, Handle:hQuery, szError[], iError, szData[], iSize, Float:flQueueTime) 
+@QueryUpdateData(iFailState, Handle:hQuery, szError[], iError, szData[], iSize, Float:flQueueTime) 
 {
 	SQL_IsFail(iFailState, iError, szError, g_szLogFile)
 }
 
-// Natives
-public native_ze_get_escape_coins(id)
+/**
+ * ===[ Natives ]===
+ */
+public native_ze_get_escape_coins(plugin_id, num_params)
 {
+	new id = get_param(1)
+
+	// Player not in game?
 	if (!is_user_connected(id))
 	{
-		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
-		return false;
+		log_error(AMX_ERR_NATIVE, "[ZE] Player not in game (%d)", id)
+		return NULLENT;
 	}
 	
 	return g_iEscapeCoins[id]
 }
 
-public native_ze_set_escape_coins(id, iAmount)
+public native_ze_set_escape_coins(plugin_id, num_params)
 {
+	new id = get_param(1)
+
+	// Player not in game?
 	if (!is_user_connected(id))
 	{
-		log_error(AMX_ERR_NATIVE, "[ZE] Invalid Player id (%d)", id)
+		log_error(AMX_ERR_NATIVE, "[ZE] Player not in game (%d)", id)
 		return false;
 	}
 	
-	g_iEscapeCoins[id] = iAmount
-	
-	SaveCoins(id)
+	g_iEscapeCoins[id] = get_param(2)
 	return true;
 }
